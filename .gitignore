@@ -1,0 +1,36 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# environment — .env.example is tracked, real ones never are
+.env
+.env.*
+!.env.example
+!.env.test.example
+
+# build / test output
+coverage/
+dist/
+build/
+*.tsbuildinfo
+
+# logs
+logs/
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# local-only scratch: everything under local/ except its README
+local/*
+!local/README.md
+
+# editors / OS
+.vscode/
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# docker compose personal overrides
+docker-compose.override.yml
