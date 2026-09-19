@@ -22,7 +22,7 @@ Mirrors the labels. Colours match the label taxonomy in `gh-setup`.
 | Field | Values → colour |
 | --- | --- |
 | `type` | feat→0E8A16, fix→D73A4A, refactor→FBCA04, docs→0075CA, chore→CFD3D7, test→BFD4F2, ci→1D76DB |
-| `area` | api→1D76DB, auth→5319E7, projects→006B75, tasks→0E8A16, db→8E44AD, obs→D4C5F9, docker→0DB7ED, ci→C2E0C6, deploy→F9D0C4, test→BFD4F2, docs→0075CA. Join several with `%20%7C%20`. |
+| `area` | api→1D76DB, auth→5319E7, projects→006B75, tasks→0E8A16, db→8E44AD, obs→D4C5F9, web→61DAFB, ui→F9A8D4, docker→0DB7ED, ci→C2E0C6, deploy→F9D0C4, test→BFD4F2, e2e→FBCA04, docs→0075CA. Join several with `%20%7C%20`. |
 | `size` | XS/S→C2E0C6, M→FEF2C0, L→F9D0C4, XL→E99695 |
 | `risk_badges` | Only when true. e.g. `![risk](https://img.shields.io/badge/risk-migration-E99695)` |
 
@@ -46,19 +46,27 @@ issue. Lead with the user-visible effect, not the implementation.}}
 
 {{Group by area, not by file. Each bullet says what now behaves differently.}}
 
-- **API** — {{routes, middleware, validation}}
+- **API** (`server/`) — {{routes, middleware, validation}}
 - **Database** — {{schema, migrations, queries}}
+- **Web** (`web/`) — {{screens, state, components}}
 - **Infra** — {{Docker, workflows, Render config}}
+
+{{Delete the headings this PR does not touch.}}
 
 ## Verification
 
-| Check | Result |
-| --- | --- |
-| `npm run lint` | {{0 errors / n warnings}} |
-| `npm test` | {{n passed / n failed, or "no suite touched"}} |
-| `npm run migrate:up` / `migrate:down` | {{applied and rolled back cleanly, or "no migration"}} |
-| `docker compose up --build` | {{app healthy at /healthz, or "not run"}} |
-| Manual / curl | {{the request you actually made and the status you got back, or "not run"}} |
+| Check | Where | Result |
+| --- | --- | --- |
+| `npm run lint` | server / web | {{0 errors / n warnings}} |
+| `npm test` | server / web | {{n passed / n failed, or "no suite touched"}} |
+| `npm run typecheck` | web | {{clean, or "not touched"}} |
+| `npm run build` | web | {{bundle built, size delta, or "not touched"}} |
+| `npm run migrate:up` / `migrate:down` | server | {{applied and rolled back cleanly, or "no migration"}} |
+| `docker compose up --build` | root | {{API healthy at /healthz, UI at :5173, or "not run"}} |
+| Manual / curl / click-through | — | {{what you actually exercised, or "not run"}} |
+
+Delete the rows for an application this PR does not touch — but do not delete a row simply because
+you did not run it. Say "not run" instead; that is the information a reviewer needs.
 
 {{Paste the real output for anything surprising. If a check was not run, say so here —
 do not leave the row out.}}
@@ -84,6 +92,8 @@ alternative you rejected and why. Delete if you genuinely have nothing.}}
 - [ ] Behaviour that cannot be checked by hand has an automated test
 - [ ] `npm run lint` and `npm test` pass locally
 - [ ] Every new environment variable is in `.env.example` **and** noted above for Render
+- [ ] A `VITE_*` variable added here contains nothing secret (they are public in the bundle)
+- [ ] If the API origin or the site origin changed, `CORS_ORIGINS` and `VITE_API_URL` were both updated
 - [ ] No secret, token, connection string or `.env` file added to a tracked file
 - [ ] New or changed endpoints validate their input and return the project's error shape
 - [ ] Any query added to a hot path is covered by an index, or the absence is justified
@@ -107,8 +117,9 @@ fixture needed.}}
 
 1. `cp .env.example .env`
 2. `docker compose up --build`
-3. `npm run migrate:up && npm run seed`
-4. {{the curl that shows the new behaviour, with its expected response}}
+3. `docker compose exec api npm run migrate:up && docker compose exec api npm run seed`
+4. {{the curl that shows the new API behaviour, with its expected response}}
+5. {{the click-through in the UI at http://localhost:5173, signed in as alice@example.com}}
 
 ## API surface
 
@@ -117,8 +128,9 @@ fixture needed.}}
 | {{POST}} | {{/api/v1/tasks}} | {{bearer}} | {{what it does, and the status codes it can return}} |
 ```
 
-Keep a screenshot only when a capture genuinely helps — a pgAdmin row, an Actions run
-summary, terminal output. This is a backend repo, so most feature PRs have none.
+A UI change ships with a screenshot — before and after, in both themes when the change is visual.
+For a server-only change, keep a capture only when it genuinely helps: a pgAdmin row, an Actions run
+summary, terminal output.
 
 ---
 

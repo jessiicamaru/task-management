@@ -5,9 +5,9 @@ description: Fetch and review a GitHub pull request in this repo - pull the diff
 
 # Review a pull request
 
-Repo: `jessiicamaru/task-management` — a Node.js + Express + PostgreSQL task management API,
-containerized with Docker, built by GitHub Actions and deployed to Render. Needs `gh` or the GitHub
-MCP server — if neither answers, run `gh-setup`.
+Repo: `jessiicamaru/task-management` — a monorepo holding `server/` (Node.js + Express + PostgreSQL
+API) and `web/` (React + Vite client), containerized with Docker, built by GitHub Actions and
+deployed to Render. Needs `gh` or the GitHub MCP server — if neither answers, run `gh-setup`.
 
 ## Invocation
 
@@ -89,7 +89,11 @@ Run all unless `--lens` narrows it.
 | `contracts` | Route path, request body and response shape changes; status codes; pagination envelope; migrations and what they do to existing rows; a new or renamed environment variable that has to reach Render. |
 | `tests` | Whether new behaviour is actually covered, and whether a new test would fail without the fix. A test that passes before and after proves nothing. |
 | `quality` | Duplication, magic numbers and strings, oversized handlers, business logic leaking into a route file, inconsistent error shapes. |
-| `docs` | Code/doc drift: does this change make the README, `docs/deployment-render.md`, the API reference or `.env.example` wrong? |
+| `docs` | Code/doc drift: does this change make a README, `docs/deployment-render.md`, the API reference or an `.env.example` wrong? |
+
+A PR here often spans both applications. Review the server half against the list below, and the
+`web/` half against **Frontend things worth checking every time**; a full-stack PR that is sound on
+one side and wrong on the other is the normal failure, not the exception.
 
 **Repo-specific things worth checking every time.** These are the failure modes this
 stack actually produces, not hypotheticals:
@@ -129,6 +133,30 @@ stack actually produces, not hypotheticals:
   users to an instance that cannot serve a single query.
 - **A doc under `docs/` left contradicting the change.** Documentation is updated in the
   same change as the code it describes.
+
+**Frontend things worth checking every time** (`web/`):
+
+- **A `fetch` outside `src/lib/api-client.ts`.** It bypasses auth refresh, timeouts and error
+  mapping, and it will work in testing and fail the moment a token expires.
+- **An access token written to `localStorage` or `sessionStorage`.** It lives in memory here on
+  purpose; one XSS or one compromised dependency turns persisted tokens into every user's session.
+- **A refresh path without the single-flight guard.** Concurrent 401s that each fire their own
+  refresh make the server's reuse detection revoke the whole token family — the client logs itself
+  out of every device. Check that the shared promise is still there.
+- **An optimistic mutation with no rollback.** `onMutate` without a snapshot restored in `onError`
+  leaves the UI showing a change the server rejected.
+- **A secret in a `VITE_*` variable.** They are inlined into the bundle at build time and are
+  public. Flag it as high severity regardless of the value's apparent sensitivity.
+- **A hard-coded colour in a feature component.** Colours come from tokens, or dark mode breaks in
+  exactly the places nobody looks at.
+- **An interactive element that is a `div`**, a missing label, or `outline: none` without a
+  replacement focus style.
+- **`dangerouslySetInnerHTML` on user content.** Comment and description bodies are stored
+  unescaped by the API on purpose; rendering them as HTML is the XSS hole.
+- **A route added without deciding whether it is protected**, or a role check in the UI mistaken for
+  enforcement — the server decides, the UI only hides.
+- **A change to `VITE_API_URL` or to the API's `CORS_ORIGINS` without the other.** They are a pair;
+  changing one alone produces an app that loads and cannot authenticate.
 
 ### 4. Score before reporting
 

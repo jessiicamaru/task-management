@@ -5,9 +5,9 @@ Node.js 22 + Express 5 + PostgreSQL 16. This directory is a self-contained appli
 to it over HTTP only.
 
 > **Not built yet.** Implementation starts at
-> [#1](https://github.com/jessiicamaru/task-management/issues/1) and runs through
-> [M1–M8](https://github.com/jessiicamaru/task-management/milestones). Every path below is what will
-> exist, not what does.
+> [#1](https://github.com/jessiicamaru/task-management/issues/1). The milestones are vertical slices, so this application is built alongside
+> [`web/`](../web) rather than ahead of it — M1 boots both, M3 ships sign-in end to end, M5 ships the
+> board. Every path below is what will exist, not what does.
 
 ## Planned layout
 

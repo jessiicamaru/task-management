@@ -172,6 +172,9 @@ gh label create "area: ci"       --color C2E0C6 --description "GitHub Actions wo
 gh label create "area: deploy"   --color F9D0C4 --description "Render, render.yaml, production config"       --force
 gh label create "area: test"     --color BFD4F2 --description "Test harness and suites"                      --force
 gh label create "area: docs"     --color 0075CA --description "README, docs/, API reference"                 --force
+gh label create "area: web"      --color 61DAFB --description "React web client (web/)"                      --force
+gh label create "area: ui"       --color F9A8D4 --description "Design system, components, accessibility"     --force
+gh label create "area: e2e"      --color FBCA04 --description "End-to-end tests across both apps"            --force
 
 # risk - only when true; these are what a reviewer should look at first
 gh label create "risk: migration" --color E99695 --description "Contains a database migration"   --force
@@ -197,18 +200,21 @@ extra signal rather than a substitute.
 
 ## Milestones (run once per repo)
 
-The issue skills sort work into delivery phases. Create them once:
+The issue skills sort work into delivery phases. Milestones here are **vertical slices**, not layers. `M3 Auth end-to-end` holds the login endpoint
+*and* the login screen, because a milestone that ends without something demonstrable is a status
+report rather than a delivery. Only the first two are foundational. Create them once:
 
 ```bash
 for m in \
-  "M1 Foundation|Project scaffold, config, logging, HTTP app shell" \
-  "M2 Database|PostgreSQL pool, migrations, schema, seeds" \
-  "M3 Auth|Registration, login, JWT, authorization" \
-  "M4 Core API|Projects, tasks, validation, API reference" \
-  "M5 Testing|Test harness, integration coverage, quality gates" \
-  "M6 Containerization|Dockerfile, compose, entrypoint" \
-  "M7 CI-CD|GitHub Actions pipelines and image publishing" \
-  "M8 Deploy and Docs|Render deployment, runbook, README"
+  "M1 Foundations|Both apps bootstrapped: tooling, config, logging, HTTP shell, error contract, health, validation, web scaffold and design tokens" \
+  "M2 Data layer and API client|PostgreSQL pool, migrations, schema, indexes, transactions, seed, password hashing - and the web API client" \
+  "M3 Auth end-to-end|Register, login, JWT, refresh rotation, authorization, rate limiting, web session and auth screens" \
+  "M4 Projects end-to-end|Projects and membership: API, authorization matrix, and the UI that renders it" \
+  "M5 Tasks end-to-end|Tasks, filtering, transitions, comments, OpenAPI - with the board and task detail" \
+  "M6 Containerization and local stack|Dockerfile, image hygiene, entrypoint migrations, compose running both apps" \
+  "M7 Testing and quality gates|Server and web test harnesses, integration and component coverage, Playwright, thresholds" \
+  "M8 CI pipeline|Lint, test, image build and smoke test, GHCR publishing, scanning, monorepo path filters" \
+  "M9 Deploy and docs|Render blueprint and static site, deploy on green, production hardening, guides and ADRs"
 do
   title="${m%%|*}"; desc="${m#*|}"
   gh api repos/jessiicamaru/task-management/milestones \

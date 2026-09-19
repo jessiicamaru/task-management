@@ -5,9 +5,9 @@ description: Browse and pull work items from the GitHub Issues tab of this repo 
 
 # Issues
 
-Repo: `jessiicamaru/task-management` — a Node.js + Express + PostgreSQL task management API,
-containerized with Docker, built by GitHub Actions and deployed to Render. Needs `gh` or the GitHub
-MCP server — if neither answers, run `gh-setup`.
+Repo: `jessiicamaru/task-management` — a monorepo holding `server/` (Node.js + Express + PostgreSQL
+API) and `web/` (React + Vite client), containerized with Docker, built by GitHub Actions and
+deployed to Render. Needs `gh` or the GitHub MCP server — if neither answers, run `gh-setup`.
 
 ## Invocation
 
@@ -21,7 +21,7 @@ target, list them. **Read-only by default**; only `--start` and `--assign` write
 | `--assignee <user>` | Filter by assignee. |
 | `--mine` | Assigned to the authenticated user. |
 | `--unassigned` | No assignee — the usual "what can I pick up" list. |
-| `--milestone <m>` | Filter by milestone, e.g. `--milestone "M2 Database"`. |
+| `--milestone <m>` | Filter by milestone, e.g. `--milestone "M3 Auth end-to-end"`. |
 | `--next` | The ready-to-start list: open, unassigned, in the earliest milestone with open work, and not blocked. |
 | `--search "<q>"` | Full-text search across title and body. |
 | `--limit <n>` | Default 20. |
@@ -48,9 +48,13 @@ it (`--search "migration in:title"`, `--search "label:\"area: ci\" is:open"`).
 
 ## What to work on next (`--next`)
 
-This repo is phased by milestone (`M1 Foundation` → `M8 Deploy and Docs`) and most
+This repo is phased by milestone (`M1 Foundations` → `M9 Deploy and docs`) and most
 issues carry a **Depends on #N** line in the body. "What next" means: the earliest
 milestone that still has open issues, minus anything whose dependencies are not closed.
+
+Milestones are **vertical slices**, so an open milestone normally contains both `server/` and
+`web/` work. When reporting ready work, group it by application — the two halves are often
+independently startable, and someone asking "what can I pick up" usually has a side in mind.
 
 ```bash
 gh api repos/jessiicamaru/task-management/milestones \
@@ -87,7 +91,11 @@ Then, useful additions the user cannot see at a glance:
 
 - Whether an open PR already references it (`gh pr list --search "<n>"`).
 - Which files in this repo the issue likely concerns — the `area:` labels map onto
-  `src/modules/<name>/`, `src/db/`, `.github/workflows/`, `Dockerfile`, `docs/`.
+  `server/src/modules/<name>/`, `server/src/db/`, `web/src/features/<name>/`,
+  `.github/workflows/`, `server/Dockerfile`, `docs/`. Every issue body opens with a
+  **Monorepo** banner saying whether its paths are relative to `server/`, to `web/`, or
+  to the repository root — quote it, because it is what makes the rest of the body
+  unambiguous.
 - Whether its **Depends on** issues are closed.
 - Whether it duplicates another open issue.
 

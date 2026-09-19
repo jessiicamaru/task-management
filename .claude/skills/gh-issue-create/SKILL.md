@@ -6,9 +6,10 @@ argument-hint: "Optional: what the issue is about, plus flags"
 
 # File an issue
 
-Repo: `jessiicamaru/task-management` — a Node.js + Express + PostgreSQL task management API,
-containerized with Docker, built by GitHub Actions and deployed to Render. Needs `gh` or the GitHub
-MCP server — if neither answers, run `gh-setup` instead of guessing.
+Repo: `jessiicamaru/task-management` — a monorepo holding `server/` (Node.js + Express + PostgreSQL
+API) and `web/` (React + Vite client), containerized with Docker, built by GitHub Actions and
+deployed to Render. Needs `gh` or the GitHub MCP server — if neither answers, run `gh-setup` instead
+of guessing.
 
 ## Invocation
 
@@ -87,7 +88,9 @@ Conventional Commits with a scope, matching this repo's history — so the commi
 eventually close it fall straight out of the title:
 
 - Scope is the module or concern touched: `api`, `auth`, `users`, `projects`, `tasks`, `db`,
-  `config`, `health`, `docker`, `ci`, `deploy`, `docs`, `test`.
+  `config`, `health`, `web`, `ui`, `docker`, `ci`, `deploy`, `docs`, `test`. Frontend work takes
+  `web` (or `ui` for the design system) even when it is about tasks or auth — the scope says where
+  the change lives, and `area:` labels carry the domain.
 - Say the **symptom or the outcome**, not the fix. `fix(tasks): status filter ignores in_progress`
   beats `fix(tasks): add status to WHERE clause` — the second decides the solution before anyone
   has looked.
@@ -143,17 +146,25 @@ Same taxonomy as `gh-pr-create`, minus size:
 
   | Path | Label |
   | --- | --- |
-  | `src/app.js`, `src/middlewares/`, `src/routes/` | `area: api` |
-  | `src/modules/auth/`, token or password handling | `area: auth` |
-  | `src/modules/projects/` | `area: projects` |
-  | `src/modules/tasks/` | `area: tasks` |
-  | `src/db/`, `migrations/`, `seeds/` | `area: db` |
-  | `src/config/logger.js`, `src/modules/health/` | `area: obs` |
-  | `Dockerfile`, `docker-compose*.yml`, `.dockerignore`, `docker/` | `area: docker` |
+  | `server/src/app.js`, `server/src/middlewares/`, `server/src/routes/` | `area: api` |
+  | `server/src/modules/auth/`, `server/src/modules/users/` | `area: auth` |
+  | `server/src/modules/projects/` | `area: projects` |
+  | `server/src/modules/tasks/` | `area: tasks` |
+  | `server/src/db/`, `server/migrations/` | `area: db` |
+  | `server/src/config/logger.js`, `server/src/modules/health/` | `area: obs` |
+  | `web/src/` generally | `area: web` |
+  | `web/src/components/ui/`, `web/src/styles/`, tokens and a11y | `area: ui` |
+  | `web/src/features/auth/` | `area: web` **and** `area: auth` |
+  | `web/src/features/tasks/` | `area: web` **and** `area: tasks` |
+  | `server/Dockerfile`, `web/Dockerfile`, `docker-compose*.yml`, `.dockerignore`, `docker/` | `area: docker` |
   | `.github/workflows/`, `.github/dependabot.yml` | `area: ci` |
   | `render.yaml`, production env, deploy scripts | `area: deploy` |
-  | `tests/`, `jest.config.*` | `area: test` |
-  | `README.md`, `docs/` | `area: docs` |
+  | `server/tests/`, `web/src/**/*.test.*`, `vitest.config.*` | `area: test` |
+  | `e2e/`, `playwright.config.*` | `area: e2e` |
+  | `README.md`, `docs/`, any `*/README.md` | `area: docs` |
+
+  A frontend issue carries `area: web` **plus** the domain it touches, so filtering by
+  `area: tasks` finds both halves of a feature.
 
 - **risk** — only when true. `risk: security` for anything touching authentication, authorization,
   password hashing, tokens, CORS or secrets; `risk: breaking` when it changes the shape of a
@@ -171,16 +182,21 @@ the taxonomy.
 Work in this repo is phased, and an unassigned issue disappears. Pick the earliest milestone whose
 description covers it:
 
+Milestones are **vertical slices**: a capability's endpoints and its screens belong to the same one.
+Do not file the API half into one milestone and the UI half into a later one — that is the habit
+this structure exists to prevent.
+
 | Milestone | Covers |
 | --- | --- |
-| `M1 Foundation` | scaffold, config, logging, error handling, HTTP shell, health |
-| `M2 Database` | pool, migration tooling, schema, seeds, indexes |
-| `M3 Auth` | registration, login, JWT, refresh, authorization |
-| `M4 Core API` | projects, tasks, validation, pagination, API reference |
-| `M5 Testing` | test harness, integration suites, coverage gates |
-| `M6 Containerization` | Dockerfile, compose, entrypoint, image hygiene |
-| `M7 CI-CD` | workflows, image publishing, scanning |
-| `M8 Deploy and Docs` | Render, runbook, README, architecture notes |
+| `M1 Foundations` | scaffold for both apps, config, logging, error contract, HTTP shell, health, validation, design tokens |
+| `M2 Data layer and API client` | pool, migration tooling, schema, indexes, seed, password hashing, the web API client |
+| `M3 Auth end-to-end` | registration, login, JWT, refresh, authorization, rate limiting, web session and auth screens |
+| `M4 Projects end-to-end` | projects, membership, the role matrix, and the UI that renders it |
+| `M5 Tasks end-to-end` | tasks, listing, transitions, comments, OpenAPI, board and task detail |
+| `M6 Containerization and local stack` | Dockerfile, image hygiene, entrypoint, compose running both apps |
+| `M7 Testing and quality gates` | test harnesses, integration and component suites, Playwright, coverage gates |
+| `M8 CI pipeline` | workflows, path filters, image publishing, scanning |
+| `M9 Deploy and docs` | Render blueprint and static site, deploy on green, hardening, guides, ADRs |
 
 A defect found in shipped code belongs in the milestone that is currently open, not the one that
 originally built the code.

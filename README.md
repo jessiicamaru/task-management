@@ -5,10 +5,13 @@ API, containerized with **Docker**, built and tested by **GitHub Actions**, and 
 **Render**.
 
 > **Status: planning.** The backlog and tooling are in place; the applications are not built yet.
-> Work is tracked across [the issues](https://github.com/jessiicamaru/task-management/issues) in
-> [milestones M1–M10](https://github.com/jessiicamaru/task-management/milestones), starting at
-> [#1](https://github.com/jessiicamaru/task-management/issues/1). This README grows into the full
-> quickstart as those land ([#49](https://github.com/jessiicamaru/task-management/issues/49)).
+> Work is tracked across [68 issues](https://github.com/jessiicamaru/task-management/issues) in
+> [nine milestones](https://github.com/jessiicamaru/task-management/milestones), starting at
+> [#1](https://github.com/jessiicamaru/task-management/issues/1). Each milestone is a **vertical
+> slice** — API and UI for one capability, shipped together — rather than a layer, so there is
+> something demonstrable at the end of each. This README grows into the full quickstart as they land
+> ([#49](https://github.com/jessiicamaru/task-management/issues/49),
+> [#68](https://github.com/jessiicamaru/task-management/issues/68)).
 
 ---
 
@@ -18,14 +21,15 @@ Teams create **projects**, invite **members** with roles, and track **tasks** th
 workflow with priorities, due dates, assignees and comments — through a web UI, or directly against
 the documented API.
 
-| Capability | Tracked in |
-| --- | --- |
-| Register, log in, JWT access tokens with rotating refresh tokens | [M3](https://github.com/jessiicamaru/task-management/milestone/3) |
-| Projects with role-based membership (`owner` / `admin` / `member` / `viewer`) | [#26](https://github.com/jessiicamaru/task-management/issues/26), [#27](https://github.com/jessiicamaru/task-management/issues/27) |
-| Tasks with filtering, sorting and keyset pagination | [#28](https://github.com/jessiicamaru/task-management/issues/28), [#29](https://github.com/jessiicamaru/task-management/issues/29) |
-| Status transition rules, assignment, comments | [#30](https://github.com/jessiicamaru/task-management/issues/30), [#31](https://github.com/jessiicamaru/task-management/issues/31) |
-| OpenAPI 3.1 reference served by the API | [#32](https://github.com/jessiicamaru/task-management/issues/32) |
-| Web client: auth, project views, task board, task detail | [M9](https://github.com/jessiicamaru/task-management/milestone/9) |
+Each capability below is one milestone, and each one covers **both halves** — the endpoints and the
+screens that use them.
+
+| Capability | API | UI | Milestone |
+| --- | --- | --- | --- |
+| Accounts and sessions — register, log in, JWT with rotating refresh tokens | [#18–#24](https://github.com/jessiicamaru/task-management/milestone/3) | [#53–#55](https://github.com/jessiicamaru/task-management/milestone/3) | [M3](https://github.com/jessiicamaru/task-management/milestone/3) |
+| Projects with role-based membership (`owner` / `admin` / `member` / `viewer`) | [#26](https://github.com/jessiicamaru/task-management/issues/26), [#27](https://github.com/jessiicamaru/task-management/issues/27) | [#57](https://github.com/jessiicamaru/task-management/issues/57), [#58](https://github.com/jessiicamaru/task-management/issues/58) | [M4](https://github.com/jessiicamaru/task-management/milestone/4) |
+| Tasks — filtering, sorting, keyset pagination, status rules, comments | [#28–#32](https://github.com/jessiicamaru/task-management/milestone/5) | [#59–#62](https://github.com/jessiicamaru/task-management/milestone/5) | [M5](https://github.com/jessiicamaru/task-management/milestone/5) |
+| OpenAPI 3.1 reference served by the API | [#32](https://github.com/jessiicamaru/task-management/issues/32) | — | [M5](https://github.com/jessiicamaru/task-management/milestone/5) |
 
 ## Repository layout
 
@@ -96,21 +100,24 @@ open http://localhost:5173         # UI
 
 ## Roadmap
 
-Each milestone is a shippable slice. Issues within one are ordered by dependency and each carries a
-`Depends on #N` line, so `/gh-issues --next` can tell you what is actually ready to start.
+Milestones are **vertical slices**, not layers: M3 is not "the auth API", it is accounts and
+sessions working from the login form through to the database. The first two are necessarily
+foundational, and everything after them ends with something you can click.
 
-| Milestone | Scope |
-| --- | --- |
-| [M1 Foundation](https://github.com/jessiicamaru/task-management/milestone/1) | Scaffold, config, logging, HTTP shell, errors, health, graceful shutdown |
-| [M2 Database](https://github.com/jessiicamaru/task-management/milestone/2) | Pool, migrations, schema, indexes, transactions, seed |
-| [M3 Auth](https://github.com/jessiicamaru/task-management/milestone/3) | Hashing, register, login, JWT, refresh rotation, authorization, rate limiting |
-| [M4 Core API](https://github.com/jessiicamaru/task-management/milestone/4) | Validation, projects, members, tasks, listing, transitions, comments, OpenAPI |
-| [M5 Testing](https://github.com/jessiicamaru/task-management/milestone/5) | Test harness, integration suites, coverage gates |
-| [M6 Containerization](https://github.com/jessiicamaru/task-management/milestone/6) | Dockerfile, image hygiene, compose, entrypoint |
-| [M7 CI-CD](https://github.com/jessiicamaru/task-management/milestone/7) | CI, image smoke test, GHCR publish, scanning, deploy |
-| [M8 Deploy and Docs](https://github.com/jessiicamaru/task-management/milestone/8) | Render blueprint, production hardening, deployment guide, docs |
-| [M9 Frontend](https://github.com/jessiicamaru/task-management/milestone/9) | React app: API client, auth, projects, task board, comments, design system, tests |
-| [M10 Full-stack Integration](https://github.com/jessiicamaru/task-management/milestone/10) | Compose with the web app, CI path filters, static site deploy, end-to-end docs |
+Issues within a milestone are ordered by dependency and each carries a `Depends on #N` line, so
+`/gh-issues --next` can tell you what is actually ready to start.
+
+| Milestone | Server | Web | Ships |
+| --- | --- | --- | --- |
+| [M1 Foundations](https://github.com/jessiicamaru/task-management/milestone/1) | #1–#9, #25 | #51, #56 | Both apps boot, with config, logging, the error contract, health checks and design tokens |
+| [M2 Data layer and API client](https://github.com/jessiicamaru/task-management/milestone/2) | #10–#17 | #52 | Schema, migrations and seed data; the single typed client every screen calls through |
+| [M3 Auth end-to-end](https://github.com/jessiicamaru/task-management/milestone/3) | #18–#24 | #53–#55 | **Sign up, sign in, stay signed in** — protected routes over rotating refresh tokens |
+| [M4 Projects end-to-end](https://github.com/jessiicamaru/task-management/milestone/4) | #26, #27 | #57, #58 | **Create a project, invite a colleague** — the role matrix, enforced and rendered |
+| [M5 Tasks end-to-end](https://github.com/jessiicamaru/task-management/milestone/5) | #28–#32 | #59–#62 | **The product** — board, filters, transitions, comments, and the API reference |
+| [M6 Containerization and local stack](https://github.com/jessiicamaru/task-management/milestone/6) | #37–#40 | #65 | `docker compose up` runs the whole thing |
+| [M7 Testing and quality gates](https://github.com/jessiicamaru/task-management/milestone/7) | #33–#36 | #63 | Integration, component and Playwright coverage with enforced thresholds |
+| [M8 CI pipeline](https://github.com/jessiicamaru/task-management/milestone/8) | #41–#44 | #64 | Every PR linted, tested, built and scanned — with monorepo path filters |
+| [M9 Deploy and docs](https://github.com/jessiicamaru/task-management/milestone/9) | #45–#50 | #66–#68 | Live on Render, deployed on green, documented end to end |
 
 ## Working on this repo
 

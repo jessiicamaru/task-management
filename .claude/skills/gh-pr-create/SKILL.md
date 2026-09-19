@@ -5,9 +5,10 @@ description: Open a GitHub pull request for the current branch in this repo - wo
 
 # Create a pull request
 
-Repo: `jessiicamaru/task-management` — a Node.js + Express + PostgreSQL task management API,
-containerized with Docker, built by GitHub Actions and deployed to Render. Needs `gh` or the GitHub
-MCP server — if neither answers, run `gh-setup` instead of guessing.
+Repo: `jessiicamaru/task-management` — a monorepo holding `server/` (Node.js + Express + PostgreSQL
+API) and `web/` (React + Vite client), containerized with Docker, built by GitHub Actions and
+deployed to Render. Needs `gh` or the GitHub MCP server — if neither answers, run `gh-setup` instead
+of guessing.
 
 ## Invocation
 
@@ -44,6 +45,13 @@ description, and **ask once** before creating.
 git branch --show-current          # must not be main
 git status --porcelain             # must be clean
 gh auth status
+```
+
+Work out which applications the branch touches before anything else — it decides the scope, the
+labels, and which verification commands actually apply:
+
+```bash
+git diff --name-only origin/<base>...HEAD | cut -d/ -f1 | sort -u
 ```
 
 Refuse to continue on `main`, and refuse with uncommitted changes — offer to commit
@@ -107,7 +115,8 @@ touched (`feat(tasks):`, `feat(auth):`, `fix(db):`, `refactor(api):`, `docs(depl
 - One commit → reuse its subject.
 - Several → synthesise one line covering the whole change. Scope from the module
   touched: `api`, `auth`, `users`, `projects`, `tasks`, `db`, `config`, `health`,
-  `docker`, `ci`, `deploy`, `docs`, `test`.
+  `web`, `ui`, `docker`, `ci`, `deploy`, `docs`, `test`. A change spanning both
+  applications takes the domain scope (`feat(tasks):`), not two scopes.
 - Imperative mood, no trailing period, ≤ 72 chars.
 
 ### 6. Description
@@ -137,17 +146,24 @@ Infer, then show the user the set before applying:
 
   | Path in the diff | Label |
   | --- | --- |
-  | `src/app.js`, `src/server.js`, `src/middlewares/`, `src/routes/` | `area: api` |
-  | `src/modules/auth/`, `src/modules/users/` | `area: auth` |
-  | `src/modules/projects/` | `area: projects` |
-  | `src/modules/tasks/` | `area: tasks` |
-  | `src/db/`, `migrations/`, `seeds/` | `area: db` |
-  | `src/config/logger.js`, `src/modules/health/` | `area: obs` |
-  | `Dockerfile`, `docker-compose*.yml`, `.dockerignore`, `docker/` | `area: docker` |
+  | `server/src/app.js`, `server/src/server.js`, `server/src/middlewares/`, `server/src/routes/` | `area: api` |
+  | `server/src/modules/auth/`, `server/src/modules/users/` | `area: auth` |
+  | `server/src/modules/projects/` | `area: projects` |
+  | `server/src/modules/tasks/` | `area: tasks` |
+  | `server/src/db/`, `server/migrations/` | `area: db` |
+  | `server/src/config/logger.js`, `server/src/modules/health/` | `area: obs` |
+  | `web/src/` generally | `area: web` |
+  | `web/src/components/ui/`, `web/src/styles/` | `area: ui` |
+  | `web/src/features/<domain>/` | `area: web` **plus** that domain's label |
+  | `server/Dockerfile`, `web/Dockerfile`, `docker-compose*.yml`, `.dockerignore`, `docker/` | `area: docker` |
   | `.github/workflows/`, `.github/dependabot.yml` | `area: ci` |
   | `render.yaml`, deploy scripts, production env handling | `area: deploy` |
-  | `tests/`, `jest.config.*` | `area: test` |
-  | `README.md`, `docs/` | `area: docs` |
+  | `server/tests/`, `web/src/**/*.test.*`, `vitest.config.*` | `area: test` |
+  | `e2e/`, `playwright.config.*` | `area: e2e` |
+  | `README.md`, `docs/`, any `*/README.md` | `area: docs` |
+
+  A PR touching both applications carries both labels — that is normal here, because milestones are
+  vertical slices and a feature usually lands as one PR across `server/` and `web/`.
 
 - **risk** — `risk: migration` if the diff adds a file under `migrations/`;
   `risk: security` if it touches authentication, authorization, password hashing,
@@ -156,8 +172,9 @@ Infer, then show the user the set before applying:
   An environment-variable rename is breaking here even though nothing fails to compile —
   Render reads them from the dashboard, and the service will boot and then fall over.
 - **size** — from `git diff --shortstat origin/<base>...HEAD` (added+deleted):
-  `XS` <50, `S` <200, `M` <600, `L` <1500, `XL` ≥1500. Exclude `package-lock.json` from
-  the count and say you did; a lockfile refresh should not turn an S into an XL.
+  `XS` <50, `S` <200, `M` <600, `L` <1500, `XL` ≥1500. Exclude **both** lockfiles
+  (`server/package-lock.json`, `web/package-lock.json`) from the count and say you did; a lockfile
+  refresh should not turn an S into an XL.
 
 If a label does not exist yet, run `gh-setup --labels` rather than creating ad-hoc
 labels that fragment the taxonomy.

@@ -3,9 +3,12 @@
 React 19 + Vite + TypeScript single-page app. Talks to [`server/`](../server) over REST; it has no
 backend of its own and holds no secrets — everything it ships is public by definition.
 
-> **Not built yet.** Implementation is tracked in
-> [M9 Frontend](https://github.com/jessiicamaru/task-management/milestones) starting at
-> [#51](https://github.com/jessiicamaru/task-management/issues/51).
+> **Not built yet.** The scaffold is [#51](https://github.com/jessiicamaru/task-management/issues/51) and the design system
+> [#56](https://github.com/jessiicamaru/task-management/issues/56), both in
+> [M1](https://github.com/jessiicamaru/task-management/milestone/1) — this app is built alongside
+> [`server/`](../server), one capability at a time, not after it. Every
+> [`area: web`](https://github.com/jessiicamaru/task-management/issues?q=is%3Aopen+label%3A%22area%3A+web%22) issue is listed under the
+> milestone that ships the capability it belongs to.
 
 ## Planned layout
 
