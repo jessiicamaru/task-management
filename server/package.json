@@ -20,7 +20,8 @@
     "migrate:up": "node-pg-migrate up",
     "migrate:down": "node-pg-migrate down",
     "migrate:create": "node-pg-migrate create",
-    "seed": "node src/db/seed.js"
+    "seed": "node src/db/seed.js",
+    "prepare": "cd .. && husky server/.husky"
   },
   "dependencies": {
     "compression": "^1.8.2",
@@ -35,6 +36,8 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
     "@eslint/js": "^9.39.5",
     "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.8",
@@ -42,9 +45,18 @@
     "eslint-plugin-n": "^18.4.1",
     "eslint-plugin-promise": "^7.3.0",
     "globals": "^17.13.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "node-pg-migrate": "^9.0.0",
     "prettier": "^3.9.9",
     "supertest": "^7.3.1",
     "vitest": "^5.0.3"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": "prettier --write --ignore-unknown"
   }
 }
