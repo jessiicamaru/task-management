@@ -57,7 +57,8 @@ CI, the Dockerfile and Render call these by name — rename one only together wi
 | --- | --- |
 | `npm start` | production entrypoint |
 | `npm run dev` | watch mode (`node --watch`) |
-| `npm run lint` / `npm run format` | ESLint / Prettier — runnable once [#2](https://github.com/jessiicamaru/task-management/issues/2) adds the tools and config |
+| `npm run lint` / `npm run lint:fix` | ESLint 9 flat config (`eslint.config.js`) |
+| `npm run format` / `npm run format:check` | Prettier (`.prettierrc`); CI runs the check |
 | `npm test` / `npm run test:watch` | Vitest + Supertest |
 | `npm run migrate:up` / `migrate:down` / `migrate:create` | node-pg-migrate (needs `DATABASE_URL`, M2) |
 | `npm run seed` | demo users, projects and tasks (placeholder for now) |
