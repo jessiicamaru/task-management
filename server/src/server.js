@@ -6,13 +6,15 @@ import { describeDatabaseUrl } from './utils/database-url.js';
 const { port } = config.http;
 
 // Express 5 calls the listen callback on failure too, passing the error (e.g. EADDRINUSE).
-createApp().listen(port, (err) => {
+const server = createApp().listen(port, (err) => {
   if (err) {
     logger.fatal({ err, port }, 'failed to start API');
     process.exit(1);
   }
+  const { address } = server.address();
   logger.info(
     {
+      address,
       port,
       env: config.env,
       logLevel: config.log.level,

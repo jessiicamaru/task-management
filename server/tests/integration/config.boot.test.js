@@ -29,6 +29,19 @@ describe('boot with an invalid environment', () => {
     expect(result.stderr).toContain('JWT_SECRET: required');
   });
 
+  it('refuses CORS_ORIGINS=* at startup with the reason', () => {
+    const result = boot({
+      DATABASE_URL: 'postgres://u:p@localhost/app',
+      JWT_SECRET: 'a-local-secret',
+      CORS_ORIGINS: '*',
+    });
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain(
+      'CORS_ORIGINS: must list explicit origins; * is invalid with credentialed CORS',
+    );
+  });
+
   it('refuses a short secret in production without printing it', () => {
     const secret = 'short-secret-value';
     const result = boot({

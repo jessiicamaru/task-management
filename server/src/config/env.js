@@ -7,6 +7,9 @@ import { z } from 'zod';
  */
 export const DEV_JWT_SECRET_PLACEHOLDER = 'dev-only-secret-change-me-at-least-32-chars';
 
+/** The Vite dev server; the default allowed origin outside production. */
+export const DEV_CORS_ORIGIN = 'http://localhost:5173';
+
 const DURATION = /^\d+[smhd]$/;
 const LOG_LEVELS = ['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'];
 
@@ -62,20 +65,27 @@ const schema = z
     LOG_LEVEL: optionalString(LOG_LEVELS.join(', ')).pipe(
       z.enum(LOG_LEVELS, { error: `must be one of ${LOG_LEVELS.join(', ')}` }).default('info'),
     ),
-    CORS_ORIGINS: optionalString('a comma-separated list of origins').transform((v) =>
-      v === undefined
-        ? undefined
-        : v
-            .split(',')
-            .map((s) => s.trim())
-            .filter(Boolean),
-    ),
+    // CORS always runs with credentials, and `Access-Control-Allow-Origin: *` with credentials is
+    // invalid per the Fetch spec — browsers reject it silently. Refuse it here, in every environment.
+    CORS_ORIGINS: optionalString('a comma-separated list of origins')
+      .transform((v) =>
+        v === undefined
+          ? undefined
+          : v
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean),
+      )
+      .refine(
+        (origins) => !origins?.includes('*'),
+        'must list explicit origins; * is invalid with credentialed CORS',
+      ),
     RATE_LIMIT_WINDOW_MS: integer(1, Number.MAX_SAFE_INTEGER, 'a positive integer').default(60000),
     RATE_LIMIT_MAX: integer(1, Number.MAX_SAFE_INTEGER, 'a positive integer').default(100),
   })
   .transform((env) => ({
     ...env,
-    CORS_ORIGINS: env.CORS_ORIGINS?.length ? env.CORS_ORIGINS : ['*'],
+    CORS_ORIGINS: env.CORS_ORIGINS?.length ? env.CORS_ORIGINS : [DEV_CORS_ORIGIN],
   }));
 
 /** The variable names the schema reads, in declaration order. */
@@ -118,8 +128,6 @@ function productionErrors({ NODE_ENV, JWT_SECRET, CORS_ORIGINS }) {
     .filter(Boolean);
   if (origins.length === 0) {
     errors.push('CORS_ORIGINS: required in production');
-  } else if (origins.includes('*')) {
-    errors.push('CORS_ORIGINS: must list explicit origins in production, not *');
   }
 
   return errors;

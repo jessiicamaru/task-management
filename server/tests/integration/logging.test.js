@@ -1,9 +1,11 @@
+import express from 'express';
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 
 import { createApp } from '../../src/app.js';
 import { createLogger } from '../../src/config/logger.js';
-import { getRequestId } from '../../src/utils/request-context.js';
+import { requestLogger } from '../../src/middlewares/request-logger.js';
+import { getRequestId, requestContext } from '../../src/utils/request-context.js';
 
 const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
@@ -119,7 +121,11 @@ describe('logger', () => {
 
   it('tags lines logged inside a request with that request id', async () => {
     const out = capture();
-    const app = createApp({ logger: out.logger });
+    // createApp ends with the 404 fallback, so a probe route goes on a minimal app built from the
+    // same two middlewares.
+    const app = express();
+    app.use(requestLogger(out.logger));
+    app.use(requestContext);
     app.get('/deep', (req, res) => {
       // A service would log through the shared logger, without access to req.
       out.logger.info({ seen: getRequestId() }, 'from a service');
