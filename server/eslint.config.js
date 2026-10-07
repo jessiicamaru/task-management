@@ -79,8 +79,8 @@ export default tseslint.config(
     },
   },
   {
-    // The process entrypoint is the one place allowed to exit the process.
-    files: ['src/server.ts'],
+    // The process entrypoint and its fatal handlers are the places allowed to exit the process.
+    files: ['src/server.ts', 'src/process-handlers.ts'],
     rules: {
       'n/no-process-exit': 'off',
     },

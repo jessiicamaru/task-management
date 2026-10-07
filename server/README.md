@@ -47,6 +47,21 @@ limit) → health routes → `/api/v1` ([`src/routes/index.ts`](src/routes/index
 handler. CORS always sends credentials, so `CORS_ORIGINS` must list explicit origins; `*` is refused
 at boot. Errors use one shape: `{ "error": { "code", "message", "details", "requestId" } }`.
 
+## Errors
+
+Every failure answers `{ "error": { "code", "message", "details", "requestId" } }`. Throw an
+`AppError` subclass from [`src/utils/errors.ts`](src/utils/errors.ts) —
+`throw new NotFoundError('Task not found', 'task_not_found')` — and the handler in
+[`src/middlewares/error-handler.ts`](src/middlewares/error-handler.ts) does the rest. `code` is
+snake_case and part of the API contract. A `ZodError` answers 422 `validation_failed` with
+`{ path, message }` details; PostgreSQL unique / foreign-key violations answer 409 and bad input
+syntax 400. Anything else is a bug: 500 `internal_error`, nothing from the original error in the
+body, the stack in the log. 4xx log at `warn` without a stack, 5xx at `error` with one.
+
+There is no `asyncHandler`: Express 5 forwards a rejected handler promise to the error handler
+(a test pins this), and a promise nobody awaits is a lint error. An unhandled rejection or
+uncaught exception outside a request logs fatally and exits 1 so the container restarts.
+
 ## Logging
 
 [pino](https://getpino.io) via [`src/config/logger.ts`](src/config/logger.ts): JSON lines in
