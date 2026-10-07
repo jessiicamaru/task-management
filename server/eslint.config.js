@@ -40,7 +40,8 @@ export default [
     },
   },
   {
-    files: ['src/config/**'],
+    // src/config owns the environment; tests build environments for the processes they spawn.
+    files: ['src/config/**', 'tests/**'],
     rules: {
       'no-process-env': 'off',
     },

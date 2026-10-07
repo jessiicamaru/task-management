@@ -1,0 +1,192 @@
+import dotenv from 'dotenv';
+import { z } from 'zod';
+
+/**
+ * The JWT secret shipped in .env.example. Fine for a laptop, refused in production: a deploy that
+ * copied .env.example verbatim must not boot.
+ */
+export const DEV_JWT_SECRET_PLACEHOLDER = 'dev-only-secret-change-me-at-least-32-chars';
+
+const DURATION = /^\d+[smhd]$/;
+const LOG_LEVELS = ['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'];
+
+// Every message is written here rather than left to zod: default messages for enums and literals
+// can echo the received value, and a value must never reach the deploy log.
+const required = (what) => ({
+  error: (issue) => (issue.input === undefined ? 'required' : `must be ${what}`),
+});
+
+const optionalString = (what) => z.string(required(what)).trim().optional();
+
+const integer = (min, max, what) =>
+  optionalString(what).pipe(
+    z
+      .string()
+      .regex(/^\d+$/, `must be ${what}`)
+      .transform(Number)
+      .refine((n) => n >= min && n <= max, `must be ${what}`)
+      .optional(),
+  );
+
+const boolean = optionalString('true or false').pipe(
+  z
+    .string()
+    .regex(/^(true|false|1|0)$/i, 'must be true or false')
+    .transform((v) => v === '1' || v.toLowerCase() === 'true')
+    .optional(),
+);
+
+const duration = optionalString('a duration like 15m or 7d').pipe(
+  z.string().regex(DURATION, 'must be a duration like 15m or 7d').optional(),
+);
+
+const schema = z
+  .object({
+    NODE_ENV: optionalString('development, test or production').pipe(
+      z
+        .enum(['development', 'test', 'production'], {
+          error: 'must be development, test or production',
+        })
+        .default('development'),
+    ),
+    PORT: integer(1, 65535, 'an integer between 1 and 65535').default(3000),
+    DATABASE_URL: z
+      .string(required('a postgres:// URL'))
+      .trim()
+      .regex(/^postgres(ql)?:\/\/\S+$/, 'must be a postgres:// URL'),
+    DATABASE_SSL: boolean.default(false),
+    DB_POOL_MAX: integer(1, 1000, 'an integer between 1 and 1000').default(10),
+    JWT_SECRET: z.string(required('a string')).min(1, 'required'),
+    JWT_ACCESS_TTL: duration.default('15m'),
+    JWT_REFRESH_TTL: duration.default('7d'),
+    LOG_LEVEL: optionalString(LOG_LEVELS.join(', ')).pipe(
+      z.enum(LOG_LEVELS, { error: `must be one of ${LOG_LEVELS.join(', ')}` }).default('info'),
+    ),
+    CORS_ORIGINS: optionalString('a comma-separated list of origins').transform((v) =>
+      v === undefined
+        ? undefined
+        : v
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean),
+    ),
+    RATE_LIMIT_WINDOW_MS: integer(1, Number.MAX_SAFE_INTEGER, 'a positive integer').default(60000),
+    RATE_LIMIT_MAX: integer(1, Number.MAX_SAFE_INTEGER, 'a positive integer').default(100),
+  })
+  .transform((env) => ({
+    ...env,
+    CORS_ORIGINS: env.CORS_ORIGINS?.length ? env.CORS_ORIGINS : ['*'],
+  }));
+
+/** The variable names the schema reads, in declaration order. */
+export const ENV_KEYS = Object.keys(schema.in.shape);
+
+/**
+ * Validates an environment object. Pure: never reads process.env, never exits.
+ *
+ * @returns {{ ok: true, env: object } | { ok: false, errors: string[] }} errors are `KEY: reason`
+ *   lines and never contain a value.
+ */
+export function parseEnv(source) {
+  const input = Object.fromEntries(ENV_KEYS.map((key) => [key, emptyToUndefined(source[key])]));
+  const result = schema.safeParse(input);
+  // Production rules run on the raw input, independently of the schema: zod skips object-level
+  // refinements once a field fails, and the report must list every problem at once.
+  const errors = [
+    ...(result.success ? [] : result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`)),
+    ...productionErrors(input),
+  ];
+  if (errors.length === 0) return { ok: true, env: result.data };
+  return { ok: false, errors: [...new Set(errors)] };
+}
+
+function productionErrors({ NODE_ENV, JWT_SECRET, CORS_ORIGINS }) {
+  if (NODE_ENV?.trim() !== 'production') return [];
+  const errors = [];
+
+  if (JWT_SECRET !== undefined) {
+    if (JWT_SECRET.length < 32) {
+      errors.push('JWT_SECRET: must be at least 32 characters in production');
+    } else if (JWT_SECRET === DEV_JWT_SECRET_PLACEHOLDER) {
+      errors.push('JWT_SECRET: is the .env.example placeholder; set a real secret in production');
+    }
+  }
+
+  const origins = (CORS_ORIGINS ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (origins.length === 0) {
+    errors.push('CORS_ORIGINS: required in production');
+  } else if (origins.includes('*')) {
+    errors.push('CORS_ORIGINS: must list explicit origins in production, not *');
+  }
+
+  return errors;
+}
+
+/**
+ * Loads .env outside production, validates process.env, and ends the process with one aggregated
+ * report if anything is wrong.
+ */
+export function loadEnv() {
+  // On Render the platform provides the variables; a stray .env in the image must never win.
+  if (process.env.NODE_ENV !== 'production') {
+    dotenv.config({ quiet: true });
+  }
+
+  const result = parseEnv(process.env);
+  if (result.ok) return result.env;
+
+  // The logger needs LOG_LEVEL from this very config, so it cannot report its own failure.
+  // eslint-disable-next-line no-console -- runs before the logger can exist
+  console.error(
+    `Invalid environment configuration:\n${result.errors.map((e) => `  - ${e}`).join('\n')}`,
+  );
+  // eslint-disable-next-line n/no-process-exit -- refusing to boot is the point
+  process.exit(1);
+}
+
+/**
+ * Builds the grouped application config from a validated environment. Pure; `config` in
+ * index.js is the instance the rest of the code imports.
+ */
+export function buildConfig(env) {
+  return deepFreeze({
+    env: env.NODE_ENV,
+    isProduction: env.NODE_ENV === 'production',
+    isTest: env.NODE_ENV === 'test',
+    http: {
+      port: env.PORT,
+      corsOrigins: env.CORS_ORIGINS,
+    },
+    db: {
+      url: env.DATABASE_URL,
+      ssl: env.DATABASE_SSL,
+      poolMax: env.DB_POOL_MAX,
+    },
+    jwt: {
+      secret: env.JWT_SECRET,
+      accessTtl: env.JWT_ACCESS_TTL,
+      refreshTtl: env.JWT_REFRESH_TTL,
+    },
+    log: {
+      level: env.LOG_LEVEL,
+    },
+    rateLimit: {
+      windowMs: env.RATE_LIMIT_WINDOW_MS,
+      max: env.RATE_LIMIT_MAX,
+    },
+  });
+}
+
+function emptyToUndefined(value) {
+  return value === undefined || value.trim() === '' ? undefined : value;
+}
+
+function deepFreeze(value) {
+  for (const child of Object.values(value)) {
+    if (child && typeof child === 'object') deepFreeze(child);
+  }
+  return Object.freeze(value);
+}

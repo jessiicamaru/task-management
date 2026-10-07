@@ -1,7 +1,7 @@
 import { createApp } from './app.js';
+import { config } from './config/index.js';
 
-// eslint-disable-next-line no-process-env -- moves into the validated config loader (#4)
-const port = Number(process.env.PORT) || 3000;
+const { port } = config.http;
 
 // Express 5 calls the listen callback on failure too, passing the error (e.g. EADDRINUSE).
 createApp().listen(port, (err) => {
