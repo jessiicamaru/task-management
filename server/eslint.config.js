@@ -55,7 +55,7 @@ export default [
   },
   {
     // Tests and tooling config import devDependencies by design.
-    files: ['tests/**', 'eslint.config.js'],
+    files: ['tests/**', 'eslint.config.js', 'vitest.config.js'],
     rules: {
       'n/no-unpublished-import': 'off',
     },
