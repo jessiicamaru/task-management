@@ -41,11 +41,10 @@ describe('createApp', () => {
     expect(() => createApp({ config: wildcard, logger })).toThrow(/\* is invalid with credentials/);
   });
 
-  it('answers 200 on /', async () => {
+  it('no longer serves the scaffold route at /', async () => {
     const res = await request(app).get('/');
 
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual({ status: 'ok' });
+    expect(res.status).toBe(404);
   });
 
   it('trusts exactly one proxy hop', () => {
@@ -122,7 +121,7 @@ describe('errors', () => {
 
 describe('CORS', () => {
   it('allows a configured origin with credentials', async () => {
-    const res = await request(app).get('/').set('origin', ALLOWED);
+    const res = await request(app).get('/healthz').set('origin', ALLOWED);
 
     expect(res.headers['access-control-allow-origin']).toBe(ALLOWED);
     expect(res.headers['access-control-allow-credentials']).toBe('true');
@@ -139,7 +138,7 @@ describe('CORS', () => {
   });
 
   it('gives a disallowed origin no allow headers', async () => {
-    const simple = await request(app).get('/').set('origin', 'https://evil.example');
+    const simple = await request(app).get('/healthz').set('origin', 'https://evil.example');
     const preflight = await request(app)
       .options('/api/v1/tasks')
       .set('origin', 'https://evil.example')

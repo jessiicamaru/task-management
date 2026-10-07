@@ -1,2 +1,2 @@
-// health module — zod schemas for request validation.
+// health module — no request input to validate: the probes take no parameters.
 export {};

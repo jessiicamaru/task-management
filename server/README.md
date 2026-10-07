@@ -5,7 +5,7 @@ TypeScript on Node.js 22 + Express 5 + PostgreSQL 16. This directory is a self-c
 to it over HTTP only.
 
 > **Scaffold only.** [#1](https://github.com/jessiicamaru/task-management/issues/1) laid out the
-> project and a server that answers `GET /`; the features arrive milestone by milestone. The
+> project and a server that answers its health probes; the features arrive milestone by milestone. The
 > milestones are vertical slices, so this application is built alongside [`web/`](../web) rather
 > than ahead of it — M1 boots both, M3 ships sign-in end to end, M5 ships the board. The module
 > files below exist as placeholders until their issue lands.
@@ -18,7 +18,7 @@ Requires Node.js **22.12 or newer** (`nvm use` reads `.nvmrc`).
 npm ci
 cp .env.example .env   # local defaults; every key is validated at boot
 npm run dev            # tsx watch, restarts on change; listens on $PORT, default 3000
-curl localhost:3000/   # {"status":"ok"}
+curl localhost:3000/healthz   # {"status":"ok","uptime":…,"version":"0.1.0"}
 npm test
 npm run build && npm start   # compiled output in dist/, as production runs it
 ```
@@ -46,6 +46,21 @@ in place: trust one proxy hop → request logging → helmet → CORS → compre
 limit) → health routes → `/api/v1` ([`src/routes/index.ts`](src/routes/index.ts)) → 404 → error
 handler. CORS always sends credentials, so `CORS_ORIGINS` must list explicit origins; `*` is refused
 at boot. Errors use one shape: `{ "error": { "code", "message", "details", "requestId" } }`.
+
+## Health probes
+
+Mounted at the root, before authentication and rate limiting — a probe never needs a token and is
+never throttled.
+
+| Probe | Answers | Used by |
+| --- | --- | --- |
+| `GET /healthz` | 200 `{ status, uptime, version }` while the process runs. Never touches the database: a liveness probe that fails on a database blip gets a healthy process killed. | Render's health check |
+| `GET /readyz` | 200 `{ status: 'ready', checks: { database: 'ok', latencyMs } }`, or **503** `{ status: 'not_ready', … }` when `SELECT 1` fails or exceeds 2 s | compose (`service_healthy`), the deploy smoke test |
+
+`version` is `package.json`'s version plus `+<sha>` when the image was built with `GIT_SHA`.
+`/readyz` is not cached (a cached "ready" hides an outage) and does not report migration status
+(it would fail the probe mid-rollout, while the old instance must keep serving). Until the pool
+lands (#10) the readiness check opens one short-lived connection per probe.
 
 ## Errors
 

@@ -7,8 +7,12 @@ import type { Logger } from 'pino';
 import type { Config } from './config/env.js';
 import { config as defaultConfig } from './config/index.js';
 import { logger as defaultLogger } from './config/logger.js';
+import { appVersion } from './config/version.js';
 import { errorHandler, notFound } from './middlewares/error-handler.js';
 import { requestLogger } from './middlewares/request-logger.js';
+import { pingDatabase } from './modules/health/health.repository.js';
+import { createHealthRouter } from './modules/health/health.routes.js';
+import type { DatabaseCheck } from './modules/health/health.service.js';
 import { createApiRouter } from './routes/index.js';
 import { requestContext } from './utils/request-context.js';
 
@@ -25,12 +29,18 @@ export interface CreateAppOptions {
   config?: Config;
   /** The router mounted at /api/v1. Tests pass their own to exercise the real chain. */
   apiRouter?: Router;
+  /** The readiness probe's database round trip. Defaults to a one-shot client until #10's pool. */
+  checkDatabase?: DatabaseCheck;
 }
+
+// Readiness answers within this, whatever the database does.
+const READINESS_TIMEOUT_MS = 2000;
 
 export function createApp({
   logger = defaultLogger,
   config = defaultConfig,
   apiRouter = createApiRouter(),
+  checkDatabase,
 }: CreateAppOptions = {}): Express {
   const { corsOrigins } = config.http;
   if (corsOrigins.includes('*')) {
@@ -88,12 +98,22 @@ export function createApp({
   app.use(express.json({ limit: BODY_LIMIT }));
   app.use(express.urlencoded({ extended: false, limit: BODY_LIMIT }));
 
-  // 7. Health routes (#8) mount here: before authentication and rate limiting, so a probe never
-  //    needs a token and never consumes a client's quota.
-  // Temporary liveness signal for the scaffold; superseded by /healthz and /readyz (#8).
-  app.get('/', (req, res) => {
-    res.status(200).json({ status: 'ok' });
-  });
+  // 7. Health probes: before authentication and rate limiting, so a probe never needs a token and
+  //    never consumes a client's quota.
+  app.use(
+    createHealthRouter({
+      version: appVersion(config.build.gitSha),
+      timeoutMs: READINESS_TIMEOUT_MS,
+      checkDatabase:
+        checkDatabase ??
+        (() =>
+          pingDatabase({
+            url: config.db.url,
+            ssl: config.db.ssl,
+            timeoutMs: READINESS_TIMEOUT_MS,
+          })),
+    }),
+  );
 
   // 8. The versioned API.
   app.use('/api/v1', apiRouter);
