@@ -23,3 +23,4 @@ undone by someone who does not know the reasoning. They are written up in
 | 0004 | Migrations run from the container entrypoint | [#40](https://github.com/jessiicamaru/task-management/issues/40) — Render's free tier has no pre-deploy job |
 | 0005 | 404 rather than 403 for non-members | [#23](https://github.com/jessiicamaru/task-management/issues/23) — a 403 confirms the resource exists |
 | 0006 | `rejectUnauthorized: false` against Render's PostgreSQL | [#10](https://github.com/jessiicamaru/task-management/issues/10), [#47](https://github.com/jessiicamaru/task-management/issues/47) — the internal certificate does not chain to a public root |
+| [0007](0007-typescript-server.md) | The API is TypeScript, compiled to `dist/` with `tsc` | [#75](https://github.com/jessiicamaru/task-management/issues/75) — written, not planned: strict flags shared with `web/`, type-aware lint |

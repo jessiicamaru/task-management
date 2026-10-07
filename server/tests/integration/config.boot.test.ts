@@ -6,12 +6,15 @@ import { fileURLToPath } from 'node:url';
 
 import { afterAll, describe, expect, it } from 'vitest';
 
-const serverEntry = fileURLToPath(new URL('../../src/server.js', import.meta.url));
+// Runs the TypeScript entry through tsx, so the test does not depend on a prior build.
+const serverEntry = fileURLToPath(new URL('../../src/server.ts', import.meta.url));
+// Resolved here, not in the child: the child runs in an empty temp directory with no node_modules.
+const tsxLoader = import.meta.resolve('tsx');
 // An empty working directory, so no developer .env is picked up by dotenv.
 const cwd = mkdtempSync(join(tmpdir(), 'config-boot-'));
 
-function boot(env) {
-  return spawnSync(process.execPath, [serverEntry], {
+function boot(env: Record<string, string>) {
+  return spawnSync(process.execPath, ['--import', tsxLoader, serverEntry], {
     cwd,
     env: { PATH: process.env.PATH, SystemRoot: process.env.SystemRoot, ...env },
     encoding: 'utf8',

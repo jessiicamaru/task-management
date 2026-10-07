@@ -1,8 +1,10 @@
 import compression from 'compression';
 import cors from 'cors';
-import express from 'express';
+import express, { type Express } from 'express';
 import helmet from 'helmet';
+import type { Logger } from 'pino';
 
+import type { Config } from './config/env.js';
 import { config as defaultConfig } from './config/index.js';
 import { logger as defaultLogger } from './config/logger.js';
 import { errorHandler, notFound } from './middlewares/error-handler.js';
@@ -18,7 +20,15 @@ const BODY_LIMIT = '100kb';
  * Builds the Express application. A factory, not a singleton: tests build one app per suite, and
  * nothing here opens a connection or a port. The order of the chain below is load-bearing.
  */
-export function createApp({ logger = defaultLogger, config = defaultConfig } = {}) {
+export interface CreateAppOptions {
+  logger?: Logger;
+  config?: Config;
+}
+
+export function createApp({
+  logger = defaultLogger,
+  config = defaultConfig,
+}: CreateAppOptions = {}): Express {
   const { corsOrigins } = config.http;
   if (corsOrigins.includes('*')) {
     // Config validation already refuses this; a hand-built config in a test must not bypass it.
@@ -61,7 +71,9 @@ export function createApp({ logger = defaultLogger, config = defaultConfig } = {
     cors((req, callback) => {
       callback(
         null,
-        allowed.has(req.headers.origin) ? { origin: true, credentials: true } : { origin: false },
+        req.headers.origin !== undefined && allowed.has(req.headers.origin)
+          ? { origin: true, credentials: true }
+          : { origin: false },
       );
     }),
   );

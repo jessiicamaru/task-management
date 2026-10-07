@@ -12,7 +12,7 @@ describe('describeDatabaseUrl', () => {
   });
 
   it('defaults the port to 5432', () => {
-    expect(describeDatabaseUrl('postgresql://u:p@localhost/app').port).toBe(5432);
+    expect(describeDatabaseUrl('postgresql://u:p@localhost/app')).toMatchObject({ port: 5432 });
   });
 
   it('never throws on a malformed URL', () => {

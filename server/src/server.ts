@@ -11,7 +11,8 @@ const server = createApp().listen(port, (err) => {
     logger.fatal({ err, port }, 'failed to start API');
     process.exit(1);
   }
-  const { address } = server.address();
+  const bound = server.address();
+  const address = typeof bound === 'object' && bound ? bound.address : bound;
   logger.info(
     {
       address,

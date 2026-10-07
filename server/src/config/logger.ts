@@ -1,4 +1,4 @@
-import pino from 'pino';
+import { pino, type DestinationStream, type Logger, type LoggerOptions } from 'pino';
 
 import { config } from './index.js';
 import { getRequestId } from '../utils/request-context.js';
@@ -25,8 +25,18 @@ export const REDACT_PATHS = [
  * Builds a logger. `destination` is for tests that capture output; production writes JSON lines
  * to stdout, development pretty-prints.
  */
-export function createLogger({ level, pretty = false, destination } = {}) {
-  const options = {
+export interface CreateLoggerOptions {
+  level?: string;
+  pretty?: boolean;
+  destination?: DestinationStream;
+}
+
+export function createLogger({
+  level = 'info',
+  pretty = false,
+  destination,
+}: CreateLoggerOptions = {}): Logger {
+  const options: LoggerOptions = {
     level,
     base: { service: 'task-management' },
     redact: { paths: REDACT_PATHS, censor: '[REDACTED]' },
