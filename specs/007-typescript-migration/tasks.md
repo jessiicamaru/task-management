@@ -30,7 +30,7 @@ description: "Task list for moving the API to TypeScript (issue #75)"
 
 ## Phase 4: User Story 3 - Docs (Priority: P2)
 
-- [X] T011 [P] [US3] `docs/adr/0001-typescript-server.md` (copy structure from `docs/adr/0000-template.md`)
+- [X] T011 [P] [US3] `docs/adr/0007-typescript-server.md` (0001–0006 are reserved by docs/adr/README.md; copy structure from `docs/adr/0000-template.md`)
 - [X] T012 [P] [US3] `server/README.md`: layout `.ts`, scripts table, getting started (`npm run build`)
 
 ## Phase 5: Polish
