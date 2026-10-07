@@ -15,7 +15,7 @@ description: "Task list for validated environment configuration (issue #4)"
 
 ## Phase 2: Foundational
 
-- [X] T002 Create `server/src/config/env.js`: `DEV_JWT_SECRET_PLACEHOLDER`, zod schema per data-model.md with value-free messages, production `superRefine`, `parseEnv(source)` returning `{ ok, env }` / `{ ok: false, errors }`, and `loadEnv()` (dotenv quiet outside production, print errors, exit 1)
+- [X] T002 Create `server/src/config/env.js`: `DEV_JWT_SECRET_PLACEHOLDER`, zod schema per data-model.md with value-free messages, production rules checked on the raw input alongside the schema (zod skips object refinements once a field fails), `parseEnv(source)` returning `{ ok, env }` / `{ ok: false, errors }`, and `loadEnv()` (dotenv quiet outside production, print errors, exit 1)
 - [X] T003 Create `server/src/config/index.js` exporting deep-frozen `config` grouped as `env`, `http`, `db`, `jwt`, `log`, `rateLimit` plus `isProduction`, `isTest`; remove `server/src/config/.gitkeep`
 
 ## Phase 3: User Story 1 - Fail loudly at boot (Priority: P1) 🎯 MVP

@@ -20,7 +20,8 @@
 
 ## R5 — Production cross-field rules
 
-- **Decision**: `superRefine` on the object for: `JWT_SECRET` length ≥ 32 and ≠ placeholder; `CORS_ORIGINS` present and without `*`. Placeholder constant exported from `env.js` and used verbatim in `.env.example` (a test asserts they match).
+- **Decision**: A separate `productionErrors(input)` runs on the raw input and its errors are merged with the schema's: `JWT_SECRET` length ≥ 32 and ≠ placeholder; `CORS_ORIGINS` present and without `*`. Placeholder constant exported from `env.js` and used verbatim in `.env.example` (a test asserts they match).
+- **Rationale**: The first draft used zod `superRefine`; zod skips object-level refinements once any field fails, so a short production secret went unreported whenever another variable was also wrong — breaking the "one aggregated report" requirement. Found by smoke test, covered by a unit test.
 
 ## R6 — Lint rules inside config
 
