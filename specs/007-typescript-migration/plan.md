@@ -40,7 +40,7 @@ server/
 ├── package.json               # build, typecheck, start, dev, seed; lint-staged *.{js,ts}
 ├── src/**/*.ts
 └── tests/**/*.ts
-docs/adr/0001-typescript-server.md
+docs/adr/0007-typescript-server.md
 ```
 
 ## Complexity Tracking
