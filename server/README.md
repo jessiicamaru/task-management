@@ -16,10 +16,22 @@ Requires Node.js **22.12 or newer** (`nvm use` reads `.nvmrc`).
 
 ```bash
 npm ci
+cp .env.example .env   # local defaults; every key is validated at boot
 npm start              # listens on $PORT, default 3000
 curl localhost:3000/   # {"status":"ok"}
 npm test
 ```
+
+## Configuration
+
+Every environment variable is read once, at boot, by [`src/config/env.js`](src/config/env.js) and
+validated as a whole. A missing or malformed one stops the process with a single report of
+`KEY: reason` lines — never the value. Code reads the frozen `config` from `src/config/index.js`
+(`config.http`, `config.db`, `config.jwt`, …); `process.env` anywhere else fails lint.
+
+`.env` is loaded only outside production. [`.env.example`](.env.example) lists every variable with
+its default. In production `JWT_SECRET` must be at least 32 characters and not the example
+placeholder, and `CORS_ORIGINS` must list explicit origins.
 
 ## Layout
 
