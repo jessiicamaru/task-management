@@ -63,6 +63,11 @@ CI, the Dockerfile and Render call these by name — rename one only together wi
 | `npm run migrate:up` / `migrate:down` / `migrate:create` | node-pg-migrate (needs `DATABASE_URL`, M2) |
 | `npm run seed` | demo users, projects and tasks (placeholder for now) |
 
+## Commits
+
+`npm ci` installs git hooks (husky): `pre-commit` lints and formats staged files, `commit-msg`
+enforces Conventional Commits with a fixed scope list. See [docs/commits.md](../docs/commits.md).
+
 ## Non-negotiables
 
 These are checked on every pull request by `/gh-pr-review`:

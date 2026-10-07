@@ -1,0 +1,8 @@
+# git passes the message file relative to the repository root (absolute in some worktree setups);
+# resolve it before changing into server/.
+case "$1" in
+  /* | [A-Za-z]:*) msg_file="$1" ;;
+  *) msg_file="$PWD/$1" ;;
+esac
+cd server
+npx --no -- commitlint --edit "$msg_file"
