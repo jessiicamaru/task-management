@@ -1,25 +1,27 @@
+import type { Request, Response } from 'express';
 import request from 'supertest';
 import { describe, expect, it, vi } from 'vitest';
 
 import { createApp } from '../../src/app.js';
-import { buildConfig, parseEnv } from '../../src/config/env.js';
+import { buildConfig } from '../../src/config/env.js';
 import { createLogger } from '../../src/config/logger.js';
 import { errorHandler } from '../../src/middlewares/error-handler.js';
+import { validEnv } from '../helpers/env.js';
 
 const ALLOWED = 'https://app.example.com';
 
 const config = buildConfig(
-  parseEnv({
+  validEnv({
     NODE_ENV: 'test',
     DATABASE_URL: 'postgres://u:p@localhost/app',
     JWT_SECRET: 'test-secret',
     CORS_ORIGINS: ALLOWED,
-  }).env,
+  }),
 );
 const logger = createLogger({ level: 'silent' });
 const app = createApp({ config, logger });
 
-const errorShape = (code) => ({
+const errorShape = (code: string) => ({
   error: { code, message: expect.any(String), details: [], requestId: expect.any(String) },
 });
 
@@ -98,7 +100,12 @@ describe('errors', () => {
     const res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
     const req = { id: 'req-1', log: { error: vi.fn() } };
 
-    errorHandler(new Error('password=hunter2 at db.internal'), req, res, () => {});
+    errorHandler(
+      new Error('password=hunter2 at db.internal'),
+      req as unknown as Request,
+      res as unknown as Response,
+      () => {},
+    );
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({

@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
-import pinoHttp from 'pino-http';
+import type { Logger } from 'pino';
+import { pinoHttp, type HttpLogger } from 'pino-http';
 
 export const REQUEST_ID_HEADER = 'x-request-id';
 
@@ -12,7 +13,7 @@ const VALID_REQUEST_ID = /^[\w.:-]{1,128}$/;
 const QUIET_PATHS = new Set(['/healthz', '/readyz']);
 
 /** pino-http configured with request ids, status-based levels and quiet health probes. */
-export function requestLogger(logger) {
+export function requestLogger(logger: Logger): HttpLogger {
   return pinoHttp({
     logger,
     quietReqLogger: true,
@@ -24,7 +25,8 @@ export function requestLogger(logger) {
       return id;
     },
     customLogLevel(req, res, err) {
-      if (QUIET_PATHS.has(req.path ?? req.url)) return 'debug';
+      const path = (req.url ?? '').split('?')[0] ?? '';
+      if (QUIET_PATHS.has(path)) return 'debug';
       if (err || res.statusCode >= 500) return 'error';
       if (res.statusCode >= 400) return 'warn';
       return 'info';

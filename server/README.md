@@ -1,6 +1,6 @@
 # server — Task Management API
 
-Node.js 22 + Express 5 + PostgreSQL 16. This directory is a self-contained application: its own
+TypeScript on Node.js 22 + Express 5 + PostgreSQL 16. This directory is a self-contained application: its own
 `package.json`, `Dockerfile` and test suite. Nothing outside it imports from it — the frontend talks
 to it over HTTP only.
 
@@ -17,16 +17,21 @@ Requires Node.js **22.12 or newer** (`nvm use` reads `.nvmrc`).
 ```bash
 npm ci
 cp .env.example .env   # local defaults; every key is validated at boot
-npm start              # listens on $PORT, default 3000
+npm run dev            # tsx watch, restarts on change; listens on $PORT, default 3000
 curl localhost:3000/   # {"status":"ok"}
 npm test
+npm run build && npm start   # compiled output in dist/, as production runs it
 ```
+
+TypeScript runs under `strict`, `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes` (the
+same flags as `web/`). Imports name the compiled file — `./app.js`, not `./app.ts` — as NodeNext
+resolution requires. Why compiled rather than run directly: [ADR 0007](../docs/adr/0007-typescript-server.md).
 
 ## Configuration
 
-Every environment variable is read once, at boot, by [`src/config/env.js`](src/config/env.js) and
+Every environment variable is read once, at boot, by [`src/config/env.ts`](src/config/env.ts) and
 validated as a whole. A missing or malformed one stops the process with a single report of
-`KEY: reason` lines — never the value. Code reads the frozen `config` from `src/config/index.js`
+`KEY: reason` lines — never the value. Code reads the frozen `config` from `src/config/index.ts`
 (`config.http`, `config.db`, `config.jwt`, …); `process.env` anywhere else fails lint.
 
 `.env` is loaded only outside production. [`.env.example`](.env.example) lists every variable with
@@ -35,16 +40,16 @@ placeholder, and `CORS_ORIGINS` is required; `*` is refused everywhere.
 
 ## Request pipeline
 
-[`src/app.js`](src/app.js) builds the app with `createApp()` — a factory, so tests build one per
+[`src/app.ts`](src/app.ts) builds the app with `createApp()` — a factory, so tests build one per
 suite and nothing opens a connection on import. The middleware order is load-bearing and commented
 in place: trust one proxy hop → request logging → helmet → CORS → compression → body parsing (100 KB
-limit) → health routes → `/api/v1` ([`src/routes/index.js`](src/routes/index.js)) → 404 → error
+limit) → health routes → `/api/v1` ([`src/routes/index.ts`](src/routes/index.ts)) → 404 → error
 handler. CORS always sends credentials, so `CORS_ORIGINS` must list explicit origins; `*` is refused
 at boot. Errors use one shape: `{ "error": { "code", "message", "details", "requestId" } }`.
 
 ## Logging
 
-[pino](https://getpino.io) via [`src/config/logger.js`](src/config/logger.js): JSON lines in
+[pino](https://getpino.io) via [`src/config/logger.ts`](src/config/logger.ts): JSON lines in
 production (what Render's log viewer parses), pretty output in development. Every request gets an
 `x-request-id` — the incoming one if it looks like an id, a UUID otherwise — echoed on the response
 and on every log line the request produces, including lines logged from services through the
@@ -57,8 +62,8 @@ health probes only at `debug`. Passwords, tokens, auth headers, cookies, `DATABA
 ```
 server/
   src/
-    server.js          # process entrypoint: config, listener, graceful shutdown
-    app.js             # builds the Express app, exported for tests
+    server.ts          # process entrypoint: config, listener, graceful shutdown
+    app.ts             # builds the Express app, exported for tests
     config/            # env validation (zod), pino logger
     db/                # pool, transaction helper, seed
     middlewares/       # authenticate, authorize, validate, errors, rate limiting
@@ -75,10 +80,11 @@ server/
     integration/
   Dockerfile
   package.json
+  tsconfig.json        # strict type check of src + tests; tsconfig.build.json emits dist/
 ```
 
-Each module holds `*.routes.js`, `*.controller.js`, `*.service.js`, `*.repository.js` and
-`*.schema.js`. HTTP concerns, business logic and SQL stay in separate files.
+Each module holds `*.routes.ts`, `*.controller.ts`, `*.service.ts`, `*.repository.ts` and
+`*.schema.ts`. HTTP concerns, business logic and SQL stay in separate files.
 
 ## Scripts
 
@@ -86,9 +92,11 @@ CI, the Dockerfile and Render call these by name — rename one only together wi
 
 | Script | Purpose |
 | --- | --- |
-| `npm start` | production entrypoint |
-| `npm run dev` | watch mode (`node --watch`) |
-| `npm run lint` / `npm run lint:fix` | ESLint 9 flat config (`eslint.config.js`) |
+| `npm run build` | compile `src/` to `dist/` (`tsc -p tsconfig.build.json`) |
+| `npm start` | production entrypoint (`node dist/server.js`) |
+| `npm run dev` | watch mode (`tsx watch src/server.ts`) |
+| `npm run typecheck` | `tsc --noEmit` over sources and tests — Vitest and tsx do not type-check |
+| `npm run lint` / `npm run lint:fix` | ESLint 9 flat config with type-aware `typescript-eslint` (`eslint.config.js`) |
 | `npm run format` / `npm run format:check` | Prettier (`.prettierrc`); CI runs the check |
 | `npm test` / `npm run test:watch` | Vitest + Supertest |
 | `npm run migrate:up` / `migrate:down` / `migrate:create` | node-pg-migrate (needs `DATABASE_URL`, M2) |

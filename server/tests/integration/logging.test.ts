@@ -10,12 +10,12 @@ import { getRequestId, requestContext } from '../../src/utils/request-context.js
 const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
 function capture(level = 'info') {
-  const lines = [];
+  const lines: string[] = [];
   const logger = createLogger({ level, destination: { write: (line) => lines.push(line) } });
   return {
     logger,
     raw: () => lines.join(''),
-    entries: () => lines.map((line) => JSON.parse(line)),
+    entries: () => lines.map((line) => JSON.parse(line) as Record<string, any>),
   };
 }
 
@@ -97,8 +97,8 @@ describe('logger', () => {
     out.logger.error({ err: new Error('boom') }, 'failed');
 
     const [entry] = out.entries();
-    expect(entry.err.message).toBe('boom');
-    expect(entry.err.stack).toContain('Error: boom');
+    expect(entry?.err.message).toBe('boom');
+    expect(entry?.err.stack).toContain('Error: boom');
   });
 
   it('redacts nested credentials and configuration secrets', () => {

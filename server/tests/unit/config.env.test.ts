@@ -8,6 +8,7 @@ import {
   ENV_KEYS,
   parseEnv,
 } from '../../src/config/env.js';
+import { envErrors, validEnv } from '../helpers/env.js';
 
 const minimal = {
   DATABASE_URL: 'postgres://user:pass@localhost:5432/app',
@@ -21,11 +22,7 @@ const production = {
   CORS_ORIGINS: 'https://app.example.com',
 };
 
-const errorsFor = (env) => {
-  const result = parseEnv(env);
-  expect(result.ok).toBe(false);
-  return result.errors;
-};
+const errorsFor = envErrors;
 
 describe('parseEnv', () => {
   it('applies defaults to a minimal environment', () => {
@@ -106,20 +103,18 @@ describe('parseEnv', () => {
   });
 
   it('requires explicit CORS origins in production', () => {
-    const withoutCors = { ...production };
-    delete withoutCors.CORS_ORIGINS;
+    const { CORS_ORIGINS: _omitted, ...withoutCors } = production;
 
     expect(errorsFor(withoutCors)).toEqual(['CORS_ORIGINS: required in production']);
   });
 
   it('accepts a valid production environment and splits CORS origins', () => {
-    const result = parseEnv({
+    const env = validEnv({
       ...production,
       CORS_ORIGINS: ' https://a.example , https://b.example,',
     });
 
-    expect(result.ok).toBe(true);
-    expect(result.env.CORS_ORIGINS).toEqual(['https://a.example', 'https://b.example']);
+    expect(env.CORS_ORIGINS).toEqual(['https://a.example', 'https://b.example']);
   });
 
   it.each([
@@ -129,7 +124,7 @@ describe('parseEnv', () => {
     ['true', true],
     ['1', true],
   ])('parses DATABASE_SSL=%s as %s', (raw, expected) => {
-    expect(parseEnv({ ...minimal, DATABASE_SSL: raw }).env.DATABASE_SSL).toBe(expected);
+    expect(validEnv({ ...minimal, DATABASE_SSL: raw }).DATABASE_SSL).toBe(expected);
   });
 
   it('rejects a TTL given as a bare number', () => {
@@ -147,7 +142,7 @@ describe('parseEnv', () => {
 
 describe('buildConfig', () => {
   it('groups and deep-freezes the configuration', () => {
-    const config = buildConfig(parseEnv({ ...minimal, PORT: '4000' }).env);
+    const config = buildConfig(validEnv({ ...minimal, PORT: '4000' }));
 
     expect(config.http.port).toBe(4000);
     expect(config.db.url).toBe(minimal.DATABASE_URL);
@@ -155,6 +150,7 @@ describe('buildConfig', () => {
     expect(Object.isFrozen(config)).toBe(true);
     expect(Object.isFrozen(config.http.corsOrigins)).toBe(true);
     expect(() => {
+      // @ts-expect-error -- read-only at the type level; this checks the runtime freeze
       config.jwt.secret = 'changed';
     }).toThrow(TypeError);
   });
@@ -162,12 +158,11 @@ describe('buildConfig', () => {
 
 describe('.env.example', () => {
   const example = readFileSync(new URL('../../.env.example', import.meta.url), 'utf8');
-  const keys = new Map(
-    example
-      .split('\n')
-      .filter((line) => /^[A-Z_]+=/.test(line))
-      .map((line) => line.split(/=(.*)/s).slice(0, 2)),
-  );
+  const keys = new Map<string, string>();
+  for (const line of example.split('\n')) {
+    const match = /^([A-Z_]+)=(.*)$/.exec(line);
+    if (match?.[1] !== undefined) keys.set(match[1], match[2] ?? '');
+  }
 
   it('documents every variable the schema reads', () => {
     expect([...keys.keys()].sort()).toEqual([...ENV_KEYS].sort());

@@ -3,3 +3,4 @@ coverage/
 package-lock.json
 # Markdown keeps the repository-wide doc style (unpadded tables, hand-wrapped prose).
 *.md
+dist/
