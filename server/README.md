@@ -31,7 +31,16 @@ validated as a whole. A missing or malformed one stops the process with a single
 
 `.env` is loaded only outside production. [`.env.example`](.env.example) lists every variable with
 its default. In production `JWT_SECRET` must be at least 32 characters and not the example
-placeholder, and `CORS_ORIGINS` must list explicit origins.
+placeholder, and `CORS_ORIGINS` is required; `*` is refused everywhere.
+
+## Request pipeline
+
+[`src/app.js`](src/app.js) builds the app with `createApp()` — a factory, so tests build one per
+suite and nothing opens a connection on import. The middleware order is load-bearing and commented
+in place: trust one proxy hop → request logging → helmet → CORS → compression → body parsing (100 KB
+limit) → health routes → `/api/v1` ([`src/routes/index.js`](src/routes/index.js)) → 404 → error
+handler. CORS always sends credentials, so `CORS_ORIGINS` must list explicit origins; `*` is refused
+at boot. Errors use one shape: `{ "error": { "code", "message", "details", "requestId" } }`.
 
 ## Logging
 

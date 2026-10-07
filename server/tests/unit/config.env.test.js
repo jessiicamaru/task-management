@@ -43,7 +43,7 @@ describe('parseEnv', () => {
         JWT_ACCESS_TTL: '15m',
         JWT_REFRESH_TTL: '7d',
         LOG_LEVEL: 'info',
-        CORS_ORIGINS: ['*'],
+        CORS_ORIGINS: ['http://localhost:5173'],
         RATE_LIMIT_WINDOW_MS: 60000,
         RATE_LIMIT_MAX: 100,
       },
@@ -72,8 +72,8 @@ describe('parseEnv', () => {
       'PORT: must be an integer between 1 and 65535',
       'DATABASE_URL: must be a postgres:// URL',
       'LOG_LEVEL: must be one of fatal, error, warn, info, debug, trace, silent',
+      'CORS_ORIGINS: must list explicit origins; * is invalid with credentialed CORS',
       'JWT_SECRET: must be at least 32 characters in production',
-      'CORS_ORIGINS: must list explicit origins in production, not *',
     ]);
   });
 
@@ -96,6 +96,12 @@ describe('parseEnv', () => {
   it('refuses the .env.example placeholder secret in production', () => {
     expect(errorsFor({ ...production, JWT_SECRET: DEV_JWT_SECRET_PLACEHOLDER })).toEqual([
       'JWT_SECRET: is the .env.example placeholder; set a real secret in production',
+    ]);
+  });
+
+  it('refuses * as a CORS origin in every environment', () => {
+    expect(errorsFor({ ...minimal, CORS_ORIGINS: 'http://localhost:5173, *' })).toEqual([
+      'CORS_ORIGINS: must list explicit origins; * is invalid with credentialed CORS',
     ]);
   });
 
