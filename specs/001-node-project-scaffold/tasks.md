@@ -24,10 +24,10 @@ description: "Task list for the API project scaffold (issue #1)"
 
 **Purpose**: Package manifest and runtime pin
 
-- [ ] T001 Create `server/package.json` with `"name": "task-management-api"`, `"private": true`, `"type": "module"`, `"engines": { "node": ">=22.12.0" }` (research R2), and an empty `scripts` object
-- [ ] T002 [P] Create `server/.nvmrc` containing `22`
-- [ ] T003 Install runtime dependencies in `server/`: `npm install express@^5 pg@^8 zod pino pino-http helmet cors compression jsonwebtoken express-rate-limit` (writes `server/package-lock.json`)
-- [ ] T004 Install dev dependencies in `server/`: `npm install -D vitest supertest node-pg-migrate`; confirm the install log shows no peer-dependency warnings (research R3)
+- [X] T001 Create `server/package.json` with `"name": "task-management-api"`, `"private": true`, `"type": "module"`, `"engines": { "node": ">=22.12.0" }` (research R2), and an empty `scripts` object
+- [X] T002 [P] Create `server/.nvmrc` containing `22`
+- [X] T003 Install runtime dependencies in `server/`: `npm install express@^5 pg@^8 zod pino pino-http helmet cors compression jsonwebtoken express-rate-limit` (writes `server/package-lock.json`)
+- [X] T004 Install dev dependencies in `server/`: `npm install -D vitest supertest node-pg-migrate`; confirm the install log shows no peer-dependency warnings (research R3)
 
 ---
 
@@ -35,8 +35,8 @@ description: "Task list for the API project scaffold (issue #1)"
 
 **Purpose**: The app/server split every story depends on
 
-- [ ] T005 Create `server/src/app.js` exporting `createApp()` that builds an Express 5 app with `GET /` → `200` JSON `{ "status": "ok" }` (contracts/http-root.md); no other middleware yet
-- [ ] T006 Create `server/src/server.js` that imports `createApp`, reads `PORT` (default `3000`), calls `listen`, logs the bound port, and on a server `error` event (e.g. `EADDRINUSE`) logs it and exits with code 1
+- [X] T005 Create `server/src/app.js` exporting `createApp()` that builds an Express 5 app with `GET /` → `200` JSON `{ "status": "ok" }` (contracts/http-root.md); no other middleware yet
+- [X] T006 Create `server/src/server.js` that imports `createApp`, reads `PORT` (default `3000`), calls `listen`, logs the bound port, and on a server `error` event (e.g. `EADDRINUSE`) logs it and exits with code 1
 
 **Checkpoint**: `node server/src/server.js` serves `/`
 
@@ -48,9 +48,9 @@ description: "Task list for the API project scaffold (issue #1)"
 
 **Independent Test**: quickstart.md steps 1, 3–5
 
-- [ ] T007 [US1] Add `start` (`node src/server.js`) and `dev` (`node --watch src/server.js`) scripts to `server/package.json`
-- [ ] T008 [US1] Create `server/tests/integration/app.test.js` with Vitest + Supertest: `GET /` returns 200 with `{ status: "ok" }`; `GET /does-not-exist` returns 404
-- [ ] T009 [US1] Verify in `server/`: `rm -rf node_modules && npm ci` (no peer warnings), `npm start` then request `/` → 200, `PORT=4000` override works, second instance on the same port exits non-zero, `git status --porcelain` empty afterwards
+- [X] T007 [US1] Add `start` (`node src/server.js`) and `dev` (`node --watch src/server.js`) scripts to `server/package.json`
+- [X] T008 [US1] Create `server/tests/integration/app.test.js` with Vitest + Supertest: `GET /` returns 200 with `{ status: "ok" }`; `GET /does-not-exist` returns 404
+- [X] T009 [US1] Verify in `server/`: `rm -rf node_modules && npm ci` (no peer warnings), `npm start` then request `/` → 200, `PORT=4000` override works, second instance on the same port exits non-zero, `git status --porcelain` empty afterwards
 
 **Checkpoint**: MVP — the scaffold demonstrably runs
 
@@ -62,9 +62,9 @@ description: "Task list for the API project scaffold (issue #1)"
 
 **Independent Test**: Inspect `scripts`; `npm test` and `npm run seed` exit 0
 
-- [ ] T010 [US2] Add the remaining scripts to `server/package.json`: `lint` (`eslint .`), `format` (`prettier --write .`), `test` (`vitest run`), `test:watch` (`vitest`), `migrate:up` (`node-pg-migrate up`), `migrate:down` (`node-pg-migrate down`), `migrate:create` (`node-pg-migrate create`), `seed` (`node src/db/seed.js`)
-- [ ] T011 [P] [US2] Create `server/src/db/seed.js` placeholder that logs "no seed data yet" and exits 0
-- [ ] T012 [US2] Run `npm test` and `npm run seed` in `server/`; both exit 0
+- [X] T010 [US2] Add the remaining scripts to `server/package.json`: `lint` (`eslint .`), `format` (`prettier --write .`), `test` (`vitest run`), `test:watch` (`vitest`), `migrate:up` (`node-pg-migrate up`), `migrate:down` (`node-pg-migrate down`), `migrate:create` (`node-pg-migrate create`), `seed` (`node src/db/seed.js`)
+- [X] T011 [P] [US2] Create `server/src/db/seed.js` placeholder that logs "no seed data yet" and exits 0
+- [X] T012 [US2] Run `npm test` and `npm run seed` in `server/`; both exit 0
 
 ---
 
@@ -74,16 +74,16 @@ description: "Task list for the API project scaffold (issue #1)"
 
 **Independent Test**: List `server/` and compare with the tree in plan.md
 
-- [ ] T013 [P] [US3] Create `.gitkeep` in `server/src/config/`, `server/src/middlewares/`, `server/src/utils/`, `server/migrations/`, `server/tests/unit/`
-- [ ] T014 [P] [US3] For each module in `auth users projects tasks health`, create `server/src/modules/<m>/<m>.routes.js`, `<m>.controller.js`, `<m>.service.js`, `<m>.repository.js`, `<m>.schema.js`, each a one-line comment naming its layer's responsibility (HTTP routing / request→response / business logic / SQL / zod schemas) and `export {};`
-- [ ] T015 [US3] Run `npm test` in `server/` to confirm the placeholder modules do not break the suite (Vitest must not pick them up as tests)
+- [X] T013 [P] [US3] Create `.gitkeep` in `server/src/config/`, `server/src/middlewares/`, `server/src/utils/`, `server/migrations/`, `server/tests/unit/`
+- [X] T014 [P] [US3] For each module in `auth users projects tasks health`, create `server/src/modules/<m>/<m>.routes.js`, `<m>.controller.js`, `<m>.service.js`, `<m>.repository.js`, `<m>.schema.js`, each a one-line comment naming its layer's responsibility (HTTP routing / request→response / business logic / SQL / zod schemas) and `export {};`
+- [X] T015 [US3] Run `npm test` in `server/` to confirm the placeholder modules do not break the suite (Vitest must not pick them up as tests)
 
 ---
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T016 [P] Update `server/README.md`: replace the "Not built yet" note with a short "Getting started" (Node 22.12+, `npm ci`, `npm start`, `npm test`), align the scripts table with contracts/npm-scripts.md, and note that `lint`/`format` become runnable with #2
-- [ ] T017 Run quickstart.md end to end and confirm `git status --porcelain` is empty apart from intended changes
+- [X] T016 [P] Update `server/README.md`: replace the "Not built yet" note with a short "Getting started" (Node 22.12+, `npm ci`, `npm start`, `npm test`), align the scripts table with contracts/npm-scripts.md, and note that `lint`/`format` become runnable with #2
+- [X] T017 Run quickstart.md end to end and confirm `git status --porcelain` is empty apart from intended changes
 
 ---
 
