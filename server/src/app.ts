@@ -1,6 +1,6 @@
 import compression from 'compression';
 import cors from 'cors';
-import express, { type Express } from 'express';
+import express, { type Express, type Router } from 'express';
 import helmet from 'helmet';
 import type { Logger } from 'pino';
 
@@ -23,11 +23,14 @@ const BODY_LIMIT = '100kb';
 export interface CreateAppOptions {
   logger?: Logger;
   config?: Config;
+  /** The router mounted at /api/v1. Tests pass their own to exercise the real chain. */
+  apiRouter?: Router;
 }
 
 export function createApp({
   logger = defaultLogger,
   config = defaultConfig,
+  apiRouter = createApiRouter(),
 }: CreateAppOptions = {}): Express {
   const { corsOrigins } = config.http;
   if (corsOrigins.includes('*')) {
@@ -93,7 +96,7 @@ export function createApp({
   });
 
   // 8. The versioned API.
-  app.use('/api/v1', createApiRouter());
+  app.use('/api/v1', apiRouter);
 
   // 9. Unmatched routes, then the error handler — last, always.
   app.use(notFound);

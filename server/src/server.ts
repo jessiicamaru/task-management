@@ -1,7 +1,10 @@
 import { createApp } from './app.js';
 import { config } from './config/index.js';
 import { logger } from './config/logger.js';
+import { installProcessHandlers } from './process-handlers.js';
 import { describeDatabaseUrl } from './utils/database-url.js';
+
+installProcessHandlers(logger);
 
 const { port } = config.http;
 
