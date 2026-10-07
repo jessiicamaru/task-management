@@ -33,6 +33,16 @@ validated as a whole. A missing or malformed one stops the process with a single
 its default. In production `JWT_SECRET` must be at least 32 characters and not the example
 placeholder, and `CORS_ORIGINS` must list explicit origins.
 
+## Logging
+
+[pino](https://getpino.io) via [`src/config/logger.js`](src/config/logger.js): JSON lines in
+production (what Render's log viewer parses), pretty output in development. Every request gets an
+`x-request-id` — the incoming one if it looks like an id, a UUID otherwise — echoed on the response
+and on every log line the request produces, including lines logged from services through the
+shared `logger` (an AsyncLocalStorage context carries it). 5xx log at `error`, 4xx at `warn`,
+health probes only at `debug`. Passwords, tokens, auth headers, cookies, `DATABASE_URL` and
+`JWT_SECRET` are redacted; the startup line names the database host, never the URL.
+
 ## Layout
 
 ```
