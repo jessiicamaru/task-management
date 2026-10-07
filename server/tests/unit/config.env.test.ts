@@ -133,6 +133,13 @@ describe('parseEnv', () => {
     ]);
   });
 
+  it('accepts a commit SHA and rejects anything else in GIT_SHA', () => {
+    expect(validEnv({ ...minimal, GIT_SHA: 'abc1234' }).GIT_SHA).toBe('abc1234');
+    expect(errorsFor({ ...minimal, GIT_SHA: 'main' })).toEqual([
+      'GIT_SHA: must be a git commit SHA',
+    ]);
+  });
+
   it('rejects an unknown NODE_ENV', () => {
     expect(errorsFor({ ...minimal, NODE_ENV: 'staging' })).toEqual([
       'NODE_ENV: must be development, test or production',

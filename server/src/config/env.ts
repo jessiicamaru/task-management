@@ -82,6 +82,13 @@ const rawSchema = z.object({
     ),
   RATE_LIMIT_WINDOW_MS: integer(1, Number.MAX_SAFE_INTEGER, 'a positive integer').default(60000),
   RATE_LIMIT_MAX: integer(1, Number.MAX_SAFE_INTEGER, 'a positive integer').default(100),
+  // Commit the image was built from (#37 passes it as a build argument). Optional.
+  GIT_SHA: optionalString('a git commit SHA').pipe(
+    z
+      .string()
+      .regex(/^[0-9a-f]{7,40}$/i, 'must be a git commit SHA')
+      .optional(),
+  ),
 });
 
 const schema = rawSchema.transform((env) => ({
@@ -198,6 +205,9 @@ export function buildConfig(env: Env): Config {
       windowMs: env.RATE_LIMIT_WINDOW_MS,
       max: env.RATE_LIMIT_MAX,
     },
+    build: {
+      gitSha: env.GIT_SHA ?? null,
+    },
   });
 }
 
@@ -211,6 +221,7 @@ export type Config = DeepReadonly<{
   jwt: { secret: string; accessTtl: string; refreshTtl: string };
   log: { level: Env['LOG_LEVEL'] };
   rateLimit: { windowMs: number; max: number };
+  build: { gitSha: string | null };
 }>;
 
 type DeepReadonly<T> = {

@@ -1,4 +1,5 @@
-import express from 'express';
+import express, { Router } from 'express';
+import type { Logger } from 'pino';
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 
@@ -19,13 +20,21 @@ function capture(level = 'info') {
   };
 }
 
+// createApp ends with the 404 fallback; a 2xx route that logs at info is injected under /api/v1
+// (the health probes log at debug).
+function appWith(logger: Logger) {
+  const apiRouter = Router();
+  apiRouter.get('/ping', (_req, res) => {
+    res.sendStatus(204);
+  });
+  return createApp({ logger, apiRouter });
+}
+
 describe('request logging', () => {
   it('uses an incoming x-request-id in the log and echoes it back', async () => {
     const out = capture();
 
-    const res = await request(createApp({ logger: out.logger }))
-      .get('/')
-      .set('x-request-id', 'abc');
+    const res = await request(appWith(out.logger)).get('/api/v1/ping').set('x-request-id', 'abc');
 
     expect(res.headers['x-request-id']).toBe('abc');
     expect(out.raw()).toContain('"reqId":"abc"');
@@ -34,7 +43,7 @@ describe('request logging', () => {
   it('generates a UUID when no id is sent, and uses it in both places', async () => {
     const out = capture();
 
-    const res = await request(createApp({ logger: out.logger })).get('/');
+    const res = await request(appWith(out.logger)).get('/api/v1/ping');
 
     const id = res.headers['x-request-id'];
     expect(id).toMatch(UUID_V4);
@@ -44,8 +53,8 @@ describe('request logging', () => {
   it('replaces an incoming id that does not look like an id', async () => {
     const out = capture();
 
-    const res = await request(createApp({ logger: out.logger }))
-      .get('/')
+    const res = await request(appWith(out.logger))
+      .get('/api/v1/ping')
       .set('x-request-id', 'a b\tc');
 
     expect(res.headers['x-request-id']).toMatch(UUID_V4);
@@ -54,7 +63,7 @@ describe('request logging', () => {
   it('logs no password or token from a login request', async () => {
     const out = capture('trace');
 
-    await request(createApp({ logger: out.logger }))
+    await request(appWith(out.logger))
       .post('/api/v1/auth/login')
       .set('authorization', 'Bearer header-token-value')
       .set('cookie', 'refreshToken=cookie-token-value')
@@ -68,13 +77,13 @@ describe('request logging', () => {
 
   it('logs 4xx at warn and 2xx at info', async () => {
     const out = capture();
-    const app = createApp({ logger: out.logger });
+    const app = appWith(out.logger);
 
-    await request(app).get('/');
+    await request(app).get('/api/v1/ping');
     await request(app).get('/missing');
 
     const levels = out.entries().map((entry) => [entry.req?.url, entry.level]);
-    expect(levels).toContainEqual(['/', 30]);
+    expect(levels).toContainEqual(['/api/v1/ping', 30]);
     expect(levels).toContainEqual(['/missing', 40]);
   });
 
@@ -141,9 +150,7 @@ describe('logger', () => {
   it('never emits reqId twice on request-logger lines', async () => {
     const out = capture();
 
-    await request(createApp({ logger: out.logger }))
-      .get('/')
-      .set('x-request-id', 'once');
+    await request(appWith(out.logger)).get('/api/v1/ping').set('x-request-id', 'once');
 
     for (const line of out.raw().trim().split('\n')) {
       expect(line.match(/"reqId"/g)?.length ?? 0).toBeLessThanOrEqual(1);
