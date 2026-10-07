@@ -1,0 +1,19 @@
+# Editors read the nearest .editorconfig upward, so this one covers server/, web/ and docker/.
+# LF everywhere matches .gitattributes: a CRLF script fails in the Linux container with
+# `exec format error`.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.md]
+# Two trailing spaces are a Markdown line break.
+trim_trailing_whitespace = false
+
+[*.{bat,cmd,ps1}]
+end_of_line = crlf
