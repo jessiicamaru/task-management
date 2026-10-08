@@ -1,0 +1,25 @@
+/*
+ * Design tokens — stubbed here, defined by the design system (#56). Components use the semantic
+ * names (bg-surface, text-text-muted), never raw palette values, so a theme change is a token
+ * change.
+ */
+@theme {
+  --color-surface: #ffffff;
+  --color-surface-muted: #f4f4f5;
+  --color-text: #18181b;
+  --color-text-muted: #52525b;
+  --color-accent: #2563eb;
+  --color-danger: #dc2626;
+
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Dark values for the same names; applied when <html> has the `dark` class. */
+.dark {
+  --color-surface: #18181b;
+  --color-surface-muted: #27272a;
+  --color-text: #fafafa;
+  --color-text-muted: #a1a1aa;
+  --color-accent: #60a5fa;
+  --color-danger: #f87171;
+}

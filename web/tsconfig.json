@@ -1,0 +1,5 @@
+{
+  // Solution file: `tsc -b` checks the app and the Vite config with their own settings.
+  "files": [],
+  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }]
+}

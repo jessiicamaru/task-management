@@ -1,0 +1,11 @@
+@import 'tailwindcss';
+@import './tokens.css';
+
+/* Class-based dark mode, so a manual toggle can override the OS preference. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  html {
+    @apply bg-surface text-text font-sans antialiased;
+  }
+}
