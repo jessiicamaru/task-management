@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
-import { ZodError } from 'zod';
+import { ZodError, type z } from 'zod';
 
 import { AppError } from '../utils/errors.js';
 import { requestIdOf } from '../utils/request-context.js';
@@ -86,6 +86,28 @@ interface ErrorLike {
   code?: unknown;
 }
 
+export interface ValidationDetail {
+  path: string;
+  message: string;
+  code: string;
+}
+
+/**
+ * One detail per problem. An unknown key is reported by zod at the object's own path with the keys
+ * in a list; it is split into one detail per key so `path` names the offending field.
+ */
+function validationDetails(issue: z.core.$ZodIssue): ValidationDetail[] {
+  const path = issue.path.map(String).join('.');
+  if (issue.code === 'unrecognized_keys') {
+    return issue.keys.map((key) => ({
+      path: path ? `${path}.${key}` : key,
+      message: `Unknown field "${key}"`,
+      code: issue.code,
+    }));
+  }
+  return [{ path, message: issue.message, code: issue.code }];
+}
+
 /** Maps anything thrown to the status, code and client-safe message it answers with. */
 export function toHttpError(err: unknown): HttpError {
   if (err instanceof AppError) {
@@ -99,7 +121,7 @@ export function toHttpError(err: unknown): HttpError {
       status: 422,
       code: 'validation_failed',
       message: 'Request validation failed',
-      details: err.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
+      details: err.issues.flatMap(validationDetails),
     };
   }
 
