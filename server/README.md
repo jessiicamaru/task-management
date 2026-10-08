@@ -62,6 +62,17 @@ never throttled.
 (it would fail the probe mid-rollout, while the old instance must keep serving). Until the pool
 lands (#10) the readiness check opens one short-lived connection per probe.
 
+## Shutdown
+
+Every Render deploy and every `docker stop` sends SIGTERM to an instance that is still serving.
+[`src/start.ts`](src/start.ts) handles SIGTERM and SIGINT once (a second signal is ignored) with
+the sequence in [`src/shutdown.ts`](src/shutdown.ts): `/readyz` turns 503 → the listener closes
+and idle keep-alive sockets are dropped → in-flight requests finish → resources close (the pool,
+once #10 lands) → logs flush → exit 0. If that takes longer than `SHUTDOWN_TIMEOUT_MS` (default
+10 s — keep it below the platform's SIGKILL grace period), the outstanding request count is logged
+and the process exits 1. `keepAliveTimeout` is 65 s, above the usual 60 s proxy idle timeout, so the
+proxy rather than Node closes idle connections.
+
 ## Errors
 
 Every failure answers `{ "error": { "code", "message", "details", "requestId" } }`. Throw an

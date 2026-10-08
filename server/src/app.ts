@@ -8,6 +8,7 @@ import type { Config } from './config/env.js';
 import { config as defaultConfig } from './config/index.js';
 import { logger as defaultLogger } from './config/logger.js';
 import { appVersion } from './config/version.js';
+import { createLifecycle, type Lifecycle } from './lifecycle.js';
 import { errorHandler, notFound } from './middlewares/error-handler.js';
 import { requestLogger } from './middlewares/request-logger.js';
 import { pingDatabase } from './modules/health/health.repository.js';
@@ -31,6 +32,8 @@ export interface CreateAppOptions {
   apiRouter?: Router;
   /** The readiness probe's database round trip. Defaults to a one-shot client until #10's pool. */
   checkDatabase?: DatabaseCheck;
+  /** Draining flag and in-flight counter, shared with the shutdown sequence (start.ts). */
+  lifecycle?: Lifecycle;
 }
 
 // Readiness answers within this, whatever the database does.
@@ -41,6 +44,7 @@ export function createApp({
   config = defaultConfig,
   apiRouter = createApiRouter(),
   checkDatabase,
+  lifecycle = createLifecycle(),
 }: CreateAppOptions = {}): Express {
   const { corsOrigins } = config.http;
   if (corsOrigins.includes('*')) {
@@ -56,7 +60,10 @@ export function createApp({
   //    and let a caller forge their IP.
   app.set('trust proxy', 1);
 
-  // 2. Logging first, so even a request rejected by a later middleware is logged with an id.
+  // 2. Count every request before anything can reject it, so a graceful shutdown waits for it.
+  app.use(lifecycle.track);
+
+  //    Logging next, so even a request rejected by a later middleware is logged with an id.
   app.use(requestLogger(logger));
   app.use(requestContext);
 
@@ -104,6 +111,7 @@ export function createApp({
     createHealthRouter({
       version: appVersion(config.build.gitSha),
       timeoutMs: READINESS_TIMEOUT_MS,
+      isDraining: () => lifecycle.draining,
       checkDatabase:
         checkDatabase ??
         (() =>

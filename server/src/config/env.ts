@@ -82,6 +82,9 @@ const rawSchema = z.object({
     ),
   RATE_LIMIT_WINDOW_MS: integer(1, Number.MAX_SAFE_INTEGER, 'a positive integer').default(60000),
   RATE_LIMIT_MAX: integer(1, Number.MAX_SAFE_INTEGER, 'a positive integer').default(100),
+  // How long a SIGTERM drain may take before the process gives up and exits 1. Keep it below the
+  // platform's own SIGKILL grace period, or this timer never gets to fire.
+  SHUTDOWN_TIMEOUT_MS: integer(1, 600000, 'an integer between 1 and 600000').default(10000),
   // Commit the image was built from (#37 passes it as a build argument). Optional.
   GIT_SHA: optionalString('a git commit SHA').pipe(
     z
@@ -205,6 +208,9 @@ export function buildConfig(env: Env): Config {
       windowMs: env.RATE_LIMIT_WINDOW_MS,
       max: env.RATE_LIMIT_MAX,
     },
+    shutdown: {
+      timeoutMs: env.SHUTDOWN_TIMEOUT_MS,
+    },
     build: {
       gitSha: env.GIT_SHA ?? null,
     },
@@ -221,6 +227,7 @@ export type Config = DeepReadonly<{
   jwt: { secret: string; accessTtl: string; refreshTtl: string };
   log: { level: Env['LOG_LEVEL'] };
   rateLimit: { windowMs: number; max: number };
+  shutdown: { timeoutMs: number };
   build: { gitSha: string | null };
 }>;
 

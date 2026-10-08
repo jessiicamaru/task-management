@@ -9,7 +9,8 @@ export interface Liveness {
 
 export type Readiness =
   | { status: 'ready'; checks: { database: 'ok'; latencyMs: number } }
-  | { status: 'not_ready'; checks: { database: 'unreachable' } };
+  | { status: 'not_ready'; checks: { database: 'unreachable' } }
+  | { status: 'not_ready'; checks: { shutdown: 'draining' } };
 
 /** Process state only — never the database. A liveness probe that fails when the database is down
  *  makes the platform kill a healthy process for a fault it cannot fix. */
