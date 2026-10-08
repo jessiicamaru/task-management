@@ -1,3 +1,3 @@
 {
-  "feature_directory": "specs/009-health-probes"
+  "feature_directory": "specs/010-graceful-shutdown"
 }
