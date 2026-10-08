@@ -43,6 +43,7 @@ describe('parseEnv', () => {
         CORS_ORIGINS: ['http://localhost:5173'],
         RATE_LIMIT_WINDOW_MS: 60000,
         RATE_LIMIT_MAX: 100,
+        SHUTDOWN_TIMEOUT_MS: 10000,
       },
     });
   });
