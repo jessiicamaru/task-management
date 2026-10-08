@@ -70,8 +70,8 @@ describe('error responses', () => {
     expect(res.status).toBe(422);
     expect(res.body.error.code).toBe('validation_failed');
     expect(res.body.error.details).toEqual([
-      { path: 'title', message: expect.any(String) },
-      { path: 'priority', message: expect.any(String) },
+      { path: 'title', message: expect.any(String), code: 'too_small' },
+      { path: 'priority', message: expect.any(String), code: 'invalid_value' },
     ]);
   });
 

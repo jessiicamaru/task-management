@@ -47,6 +47,24 @@ limit) → health routes → `/api/v1` ([`src/routes/index.ts`](src/routes/index
 handler. CORS always sends credentials, so `CORS_ORIGINS` must list explicit origins; `*` is refused
 at boot. Errors use one shape: `{ "error": { "code", "message", "details", "requestId" } }`.
 
+## Validation
+
+Inputs are validated at the edge with [`validate()`](src/middlewares/validate.ts) and zod:
+
+```ts
+router.post('/tasks', validate({ body: createTaskBody }), controller.create);
+router.get('/tasks', validate({ query: paginationQuery }), controller.list);
+```
+
+Handlers see **parsed** values: the parsed body replaces `req.body`; the parsed query and params are
+on `req.validated` (Express 5's `req.query` is a getter — assigning to it throws). Failures from every
+part go to the error handler as one 422 with `details: [{ path, message, code }]`, paths prefixed
+`body.`, `query.` or `params.`. Body schemas use `strictBody()`, so an unknown key is an error naming
+the key rather than silently dropped. Shared schemas live in
+[`src/utils/schemas.ts`](src/utils/schemas.ts) — `email` (trimmed and lowercased *before* the format
+check), `uuidParam`, `paginationQuery` (`limit` 1–100, default 20), `sortQuery(fields)`, `isoDate`;
+module schemas sit beside their module and are exported for the OpenAPI document (#32).
+
 ## Health probes
 
 Mounted at the root, before authentication and rate limiting — a probe never needs a token and is

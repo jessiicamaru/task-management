@@ -66,6 +66,11 @@ export function createApp({
   //    Logging next, so even a request rejected by a later middleware is logged with an id.
   app.use(requestLogger(logger));
   app.use(requestContext);
+  // Filled by validate() (src/middlewares/validate.ts); present on every request so the type holds.
+  app.use((req, _res, next) => {
+    req.validated = {};
+    next();
+  });
 
   // 3. Security headers on every response, errors included. The CSP allows what the Swagger UI
   //    (#32) needs: its own script files, inline styles, data-URI images. COEP off: the UI loads
