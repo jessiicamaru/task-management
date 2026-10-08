@@ -1,2 +1,9 @@
 cd server
 npx --no -- lint-staged
+
+# web/ has its own tooling. Skipped when web/ has not been installed (npm ci in web/), so a
+# server-only contributor is not blocked; CI lints web/ either way.
+cd ../web
+if [ -d node_modules ]; then
+  npx --no -- lint-staged
+fi

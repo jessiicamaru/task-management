@@ -1,0 +1,2 @@
+// components/layout: populated by its milestone; see web/README.md for what belongs here.
+export {};
