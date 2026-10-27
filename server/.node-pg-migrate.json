@@ -1,0 +1,7 @@
+{
+  "migrations-dir": "migrations",
+  "migrations-table": "pgmigrations",
+  "migration-file-language": "cjs",
+  "migration-filename-format": "timestamp",
+  "check-order": true
+}

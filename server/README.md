@@ -4,8 +4,9 @@ TypeScript on Node.js 22 + Express 5 + PostgreSQL 16. This directory is a self-c
 `package.json`, `Dockerfile` and test suite. Nothing outside it imports from it — the frontend talks
 to it over HTTP only.
 
-> **Scaffold only.** [#1](https://github.com/jessiicamaru/task-management/issues/1) laid out the
-> project and a server that answers its health probes; the features arrive milestone by milestone. The
+> **Foundation and data layer complete.** [#1](https://github.com/jessiicamaru/task-management/issues/1)
+> laid out the project, and #10–#17 add the PostgreSQL schema and supporting runtime. Product
+> features arrive milestone by milestone. The
 > milestones are vertical slices, so this application is built alongside [`web/`](../web) rather
 > than ahead of it — M1 boots both, M3 ships sign-in end to end, M5 ships the board. The module
 > files below exist as placeholders until their issue lands.
@@ -77,16 +78,16 @@ never throttled.
 
 `version` is `package.json`'s version plus `+<sha>` when the image was built with `GIT_SHA`.
 `/readyz` is not cached (a cached "ready" hides an outage) and does not report migration status
-(it would fail the probe mid-rollout, while the old instance must keep serving). Until the pool
-lands (#10) the readiness check opens one short-lived connection per probe.
+(it would fail the probe mid-rollout, while the old instance must keep serving). It uses the shared
+bounded pool and the same query timeout as application traffic.
 
 ## Shutdown
 
 Every Render deploy and every `docker stop` sends SIGTERM to an instance that is still serving.
 [`src/start.ts`](src/start.ts) handles SIGTERM and SIGINT once (a second signal is ignored) with
 the sequence in [`src/shutdown.ts`](src/shutdown.ts): `/readyz` turns 503 → the listener closes
-and idle keep-alive sockets are dropped → in-flight requests finish → resources close (the pool,
-once #10 lands) → logs flush → exit 0. If that takes longer than `SHUTDOWN_TIMEOUT_MS` (default
+and idle keep-alive sockets are dropped → in-flight requests finish → the PostgreSQL pool closes
+→ logs flush → exit 0. If that takes longer than `SHUTDOWN_TIMEOUT_MS` (default
 10 s — keep it below the platform's SIGKILL grace period), the outstanding request count is logged
 and the process exits 1. `keepAliveTimeout` is 65 s, above the usual 60 s proxy idle timeout, so the
 proxy rather than Node closes idle connections.
@@ -158,8 +159,12 @@ CI, the Dockerfile and Render call these by name — rename one only together wi
 | `npm run lint` / `npm run lint:fix` | ESLint 9 flat config with type-aware `typescript-eslint` (`eslint.config.js`) |
 | `npm run format` / `npm run format:check` | Prettier (`.prettierrc`); CI runs the check |
 | `npm test` / `npm run test:watch` | Vitest + Supertest |
-| `npm run migrate:up` / `migrate:down` / `migrate:create` | node-pg-migrate (needs `DATABASE_URL`, M2) |
-| `npm run seed` | demo users, projects and tasks (placeholder for now) |
+| `npm run migrate:up` / `migrate:down` / `migrate:create` / `migrate:status` | Apply, reverse, create and inspect migrations (needs `DATABASE_URL`) |
+| `npm run seed` | Idempotent demo users, projects, comments and 20 tasks; pass `-- --tasks 50000` for index testing |
+| `npm run db:cleanup` | Delete refresh-token records expired for more than 30 days |
+
+See [`docs/database.md`](../docs/database.md) for migration rules, demo credentials and transaction
+conventions.
 
 ## Commits
 

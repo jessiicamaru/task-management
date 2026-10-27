@@ -30,7 +30,7 @@ export interface CreateAppOptions {
   config?: Config;
   /** The router mounted at /api/v1. Tests pass their own to exercise the real chain. */
   apiRouter?: Router;
-  /** The readiness probe's database round trip. Defaults to a one-shot client until #10's pool. */
+  /** The readiness probe's database round trip. Defaults to the shared pool. */
   checkDatabase?: DatabaseCheck;
   /** Draining flag and in-flight counter, shared with the shutdown sequence (start.ts). */
   lifecycle?: Lifecycle;
@@ -117,14 +117,7 @@ export function createApp({
       version: appVersion(config.build.gitSha),
       timeoutMs: READINESS_TIMEOUT_MS,
       isDraining: () => lifecycle.draining,
-      checkDatabase:
-        checkDatabase ??
-        (() =>
-          pingDatabase({
-            url: config.db.url,
-            ssl: config.db.ssl,
-            timeoutMs: READINESS_TIMEOUT_MS,
-          })),
+      checkDatabase: checkDatabase ?? pingDatabase,
     }),
   );
 
