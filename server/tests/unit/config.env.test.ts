@@ -36,6 +36,8 @@ describe('parseEnv', () => {
         DATABASE_URL: minimal.DATABASE_URL,
         DATABASE_SSL: false,
         DB_POOL_MAX: 10,
+        DB_SLOW_QUERY_MS: 200,
+        SEED_FORCE: false,
         JWT_SECRET: minimal.JWT_SECRET,
         JWT_ACCESS_TTL: '15m',
         JWT_REFRESH_TTL: '7d',

@@ -4,8 +4,10 @@ A full-stack task management application — a **React** web client and a **Node
 API, containerized with **Docker**, built and tested by **GitHub Actions**, and deployed to
 **Render**.
 
-> **Status: planning.** The backlog and tooling are in place; the applications are not built yet.
-> Work is tracked across [68 issues](https://github.com/jessiicamaru/task-management/issues) in
+> **Status: foundations and data layer.** Both applications are scaffolded, and the API now has a
+> production-shaped PostgreSQL pool, reversible schema migrations, transaction support, Argon2id
+> password hashing, cleanup tooling and deterministic demo data. Product flows (auth, projects and
+> tasks) are next. Work is tracked across [68 issues](https://github.com/jessiicamaru/task-management/issues) in
 > [nine milestones](https://github.com/jessiicamaru/task-management/milestones), starting at
 > [#1](https://github.com/jessiicamaru/task-management/issues/1). Each milestone is a **vertical
 > slice** — API and UI for one capability, shipped together — rather than a layer, so there is

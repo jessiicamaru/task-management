@@ -59,6 +59,8 @@ const rawSchema = z.object({
     .regex(/^postgres(ql)?:\/\/\S+$/, 'must be a postgres:// URL'),
   DATABASE_SSL: boolean.default(false),
   DB_POOL_MAX: integer(1, 1000, 'an integer between 1 and 1000').default(10),
+  DB_SLOW_QUERY_MS: integer(1, 60000, 'an integer between 1 and 60000').default(200),
+  SEED_FORCE: boolean.default(false),
   JWT_SECRET: z.string(required('a string')).min(1, 'required'),
   JWT_ACCESS_TTL: duration.default('15m'),
   JWT_REFRESH_TTL: duration.default('7d'),
@@ -195,7 +197,9 @@ export function buildConfig(env: Env): Config {
       url: env.DATABASE_URL,
       ssl: env.DATABASE_SSL,
       poolMax: env.DB_POOL_MAX,
+      slowQueryMs: env.DB_SLOW_QUERY_MS,
     },
+    seed: { force: env.SEED_FORCE },
     jwt: {
       secret: env.JWT_SECRET,
       accessTtl: env.JWT_ACCESS_TTL,
@@ -223,7 +227,8 @@ export type Config = DeepReadonly<{
   isProduction: boolean;
   isTest: boolean;
   http: { port: number; corsOrigins: string[] };
-  db: { url: string; ssl: boolean; poolMax: number };
+  db: { url: string; ssl: boolean; poolMax: number; slowQueryMs: number };
+  seed: { force: boolean };
   jwt: { secret: string; accessTtl: string; refreshTtl: string };
   log: { level: Env['LOG_LEVEL'] };
   rateLimit: { windowMs: number; max: number };

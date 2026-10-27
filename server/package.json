@@ -22,10 +22,13 @@
     "migrate:up": "node-pg-migrate up",
     "migrate:down": "node-pg-migrate down",
     "migrate:create": "node-pg-migrate create",
+    "migrate:status": "tsx src/db/migration-status.ts",
+    "db:cleanup": "tsx src/db/cleanup.ts",
     "seed": "tsx src/db/seed.ts",
     "prepare": "cd .. && husky server/.husky"
   },
   "dependencies": {
+    "@node-rs/argon2": "^2.2.2",
     "compression": "^1.8.2",
     "cors": "^2.8.6",
     "dotenv": "^18.0.6",
