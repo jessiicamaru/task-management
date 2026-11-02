@@ -37,14 +37,20 @@ export class ApiError extends Error {
 
 export interface RequestOptions extends Omit<RequestInit, 'body'> {
   body?: unknown;
-  auth?: boolean | string;
-  timeoutMs?: number;
+  auth?: boolean | string | undefined;
+  timeoutMs?: number | undefined;
+  _isRetry?: boolean | undefined;
 }
 
 let getAuthToken: (() => string | null | Promise<string | null>) | null = null;
+let refreshHandler: (() => Promise<string | null>) | null = null;
 
 export function setAuthTokenGetter(getter: () => string | null | Promise<string | null>) {
   getAuthToken = getter;
+}
+
+export function setRefreshTokenHandler(handler: (() => Promise<string | null>) | null) {
+  refreshHandler = handler;
 }
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -55,6 +61,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     headers: customHeaders = {},
     signal,
     timeoutMs = 15000,
+    _isRetry = false,
     ...rest
   } = options;
 
@@ -140,6 +147,24 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     } catch {
       // Non-JSON response (e.g., 502 Bad Gateway from Render proxy or 413 HTML page)
       parsedBody = null;
+    }
+
+    const errorCode = parsedBody?.error?.code;
+
+    // Silent refresh interceptor: trigger single refresh and retry once when token expires
+    if (response.status === 401 && errorCode === 'token_expired' && !_isRetry && refreshHandler) {
+      try {
+        const refreshedToken = await refreshHandler();
+        if (refreshedToken) {
+          return await request<T>(path, {
+            ...options,
+            auth: refreshedToken,
+            _isRetry: true,
+          });
+        }
+      } catch {
+        // If refresh fails, fall through to throw original ApiError
+      }
     }
 
     if (parsedBody && parsedBody.error) {
