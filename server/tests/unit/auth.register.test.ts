@@ -64,7 +64,7 @@ describe('Auth Register - Unit Tests', () => {
   describe('AuthService', () => {
     it('hashes the password with argon2id and never returns password_hash', async () => {
       let savedHash = '';
-      const mockRepo: AuthRepository = {
+      const mockRepo = {
         createUser: vi.fn().mockImplementation(({ email, passwordHash, name }) => {
           savedHash = passwordHash;
           const user: UserRow = {
@@ -76,7 +76,7 @@ describe('Auth Register - Unit Tests', () => {
           };
           return Promise.resolve(user);
         }),
-      };
+      } as unknown as AuthRepository;
 
       const service = new AuthService(mockRepo);
       const user = await service.register({

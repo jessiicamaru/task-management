@@ -54,6 +54,7 @@ export function createApp({
 
   const app = express();
   app.disable('x-powered-by');
+  app.locals.config = config;
 
   // 1. Render terminates TLS at one proxy hop. Without this, req.ip is the proxy and the rate
   //    limiter (#24) buckets the whole internet together. `true` would trust any X-Forwarded-For
