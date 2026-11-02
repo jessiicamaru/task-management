@@ -37,8 +37,41 @@ export interface Project {
   name: string;
   description: string | null;
   ownerId: string;
+  role: ProjectRole;
+  memberCount?: number;
+  taskCount?: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface TaskCounts {
+  todo: number;
+  inProgress: number;
+  done: number;
+  archived: number;
+  total: number;
+}
+
+export interface ProjectDetail extends Project {
+  memberCount: number;
+  taskCounts: TaskCounts;
+}
+
+export interface ProjectMember {
+  id: string;
+  name: string;
+  email: string;
+  role: ProjectRole;
+  joinedAt: string;
+}
+
+export interface PaginationEnvelope<T> {
+  data: T[];
+  pagination: {
+    nextCursor: string | null;
+    hasMore: boolean;
+    limit: number;
+  };
 }
 
 export type TaskStatus = 'todo' | 'in_progress' | 'blocked' | 'done';

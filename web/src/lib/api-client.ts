@@ -218,3 +218,26 @@ export function toFormErrors<TFieldValues extends FieldValues>(
 
   return true;
 }
+
+export const apiClient = {
+  get: <T>(path: string, options?: RequestOptions) =>
+    request<T>(
+      path.startsWith('/api/v1') ? path : `/api/v1${path.startsWith('/') ? path : `/${path}`}`,
+      { ...options, method: 'GET' },
+    ),
+  post: <T>(path: string, body?: unknown, options?: RequestOptions) =>
+    request<T>(
+      path.startsWith('/api/v1') ? path : `/api/v1${path.startsWith('/') ? path : `/${path}`}`,
+      { ...options, method: 'POST', body },
+    ),
+  patch: <T>(path: string, body?: unknown, options?: RequestOptions) =>
+    request<T>(
+      path.startsWith('/api/v1') ? path : `/api/v1${path.startsWith('/') ? path : `/${path}`}`,
+      { ...options, method: 'PATCH', body },
+    ),
+  delete: <T = void>(path: string, options?: RequestOptions) =>
+    request<T>(
+      path.startsWith('/api/v1') ? path : `/api/v1${path.startsWith('/') ? path : `/${path}`}`,
+      { ...options, method: 'DELETE' },
+    ),
+};
