@@ -1,25 +1,168 @@
 /*
- * Design tokens — stubbed here, defined by the design system (#56). Components use the semantic
- * names (bg-surface, text-text-muted), never raw palette values, so a theme change is a token
- * change.
+ * Design tokens — defined by the design system (#56).
+ * All UI components consume semantic tokens rather than hard-coded hex or palette values.
  */
-@theme {
-  --color-surface: #ffffff;
-  --color-surface-muted: #f4f4f5;
-  --color-text: #18181b;
-  --color-text-muted: #52525b;
-  --color-accent: #2563eb;
-  --color-danger: #dc2626;
 
-  --font-sans: ui-sans-serif, system-ui, sans-serif;
+:root {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --surface-muted: #f1f5f9;
+  --surface-hover: #e2e8f0;
+  --border: #e2e8f0;
+  --border-focus: #3b82f6;
+  --fg: #0f172a;
+  --fg-muted: #64748b;
+  --fg-subtle: #94a3b8;
+
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-fg: #ffffff;
+
+  --danger: #dc2626;
+  --danger-hover: #b91c1c;
+  --danger-muted: #fee2e2;
+  --danger-fg: #ffffff;
+
+  --warning: #d97706;
+  --warning-muted: #fef3c7;
+  --warning-fg: #78350f;
+
+  --success: #16a34a;
+  --success-muted: #dcfce7;
+  --success-fg: #14532d;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-full: 9999px;
+
+  --ring-focus: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
 }
 
-/* Dark values for the same names; applied when <html> has the `dark` class. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #090d16;
+    --surface: #0f172a;
+    --surface-muted: #1e293b;
+    --surface-hover: #334155;
+    --border: #334155;
+    --border-focus: #60a5fa;
+    --fg: #f8fafc;
+    --fg-muted: #94a3b8;
+    --fg-subtle: #64748b;
+
+    --accent: #3b82f6;
+    --accent-hover: #60a5fa;
+    --accent-fg: #ffffff;
+
+    --danger: #ef4444;
+    --danger-hover: #f87171;
+    --danger-muted: #450a0a;
+    --danger-fg: #fee2e2;
+
+    --warning: #f59e0b;
+    --warning-muted: #451a03;
+    --warning-fg: #fef3c7;
+
+    --success: #22c55e;
+    --success-muted: #052e16;
+    --success-fg: #dcfce7;
+
+    --ring-focus: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+  }
+}
+
+:root[data-theme='dark'],
 .dark {
-  --color-surface: #18181b;
-  --color-surface-muted: #27272a;
-  --color-text: #fafafa;
-  --color-text-muted: #a1a1aa;
-  --color-accent: #60a5fa;
-  --color-danger: #f87171;
+  --bg: #090d16;
+  --surface: #0f172a;
+  --surface-muted: #1e293b;
+  --surface-hover: #334155;
+  --border: #334155;
+  --border-focus: #60a5fa;
+  --fg: #f8fafc;
+  --fg-muted: #94a3b8;
+  --fg-subtle: #64748b;
+
+  --accent: #3b82f6;
+  --accent-hover: #60a5fa;
+  --accent-fg: #ffffff;
+
+  --danger: #ef4444;
+  --danger-hover: #f87171;
+  --danger-muted: #450a0a;
+  --danger-fg: #fee2e2;
+
+  --warning: #f59e0b;
+  --warning-muted: #451a03;
+  --warning-fg: #fef3c7;
+
+  --success: #22c55e;
+  --success-muted: #052e16;
+  --success-fg: #dcfce7;
+
+  --ring-focus: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+}
+
+:root[data-theme='light'] {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --surface-muted: #f1f5f9;
+  --surface-hover: #e2e8f0;
+  --border: #e2e8f0;
+  --border-focus: #3b82f6;
+  --fg: #0f172a;
+  --fg-muted: #64748b;
+  --fg-subtle: #94a3b8;
+
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-fg: #ffffff;
+
+  --danger: #dc2626;
+  --danger-hover: #b91c1c;
+  --danger-muted: #fee2e2;
+  --danger-fg: #ffffff;
+
+  --warning: #d97706;
+  --warning-muted: #fef3c7;
+  --warning-fg: #78350f;
+
+  --success: #16a34a;
+  --success-muted: #dcfce7;
+  --success-fg: #14532d;
+
+  --ring-focus: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+}
+
+@theme {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
+
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+  --color-danger-muted: var(--danger-muted);
+  --color-danger-fg: var(--danger-fg);
+
+  --color-warning: var(--warning);
+  --color-warning-muted: var(--warning-muted);
+  --color-warning-fg: var(--warning-fg);
+
+  --color-success: var(--success);
+  --color-success-muted: var(--success-muted);
+  --color-success-fg: var(--success-fg);
+
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
 }

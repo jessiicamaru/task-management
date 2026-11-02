@@ -1,11 +1,43 @@
 @import 'tailwindcss';
 @import './tokens.css';
 
-/* Class-based dark mode, so a manual toggle can override the OS preference. */
-@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *, .dark, .dark *));
 
 @layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--border);
+  }
+
   html {
-    @apply bg-surface text-text font-sans antialiased;
+    background-color: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    antialiased: subpixel-antialiased;
+  }
+
+  body {
+    min-height: 100vh;
+    background-color: var(--bg);
+    color: var(--fg);
+  }
+
+  /* Accessibility: ensure focus rings are visible when navigating by keyboard */
+  :focus-visible {
+    outline: none;
+    box-shadow: var(--ring-focus);
+  }
+
+  /* Accessibility: respect reduced motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
