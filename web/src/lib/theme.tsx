@@ -14,7 +14,7 @@ const STORAGE_KEY = 'task-mgmt-theme';
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function getSystemTheme(): ResolvedTheme {
-  if (typeof window === 'undefined') return 'light';
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return 'light';
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
@@ -46,7 +46,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
     applyTheme();
 
-    if (theme === 'system') {
+    if (theme === 'system' && typeof window.matchMedia === 'function') {
       const media = window.matchMedia('(prefers-color-scheme: dark)');
       const listener = () => applyTheme();
       media.addEventListener('change', listener);
