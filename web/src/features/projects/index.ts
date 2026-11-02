@@ -1,2 +1,4 @@
-// features/projects: populated by its milestone; see web/README.md for what belongs here.
-export {};
+export * from './permissions';
+export * from './projects-api';
+export * from './ProjectsListPage';
+export * from './ProjectDetailPage';

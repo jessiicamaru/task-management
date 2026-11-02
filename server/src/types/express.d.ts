@@ -9,6 +9,7 @@ declare global {
       user?: {
         id: string;
       };
+      projectRole?: 'owner' | 'admin' | 'member' | 'viewer';
     }
   }
 }

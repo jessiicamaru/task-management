@@ -9,8 +9,8 @@ export interface ToastMessage {
   id: string;
   type: ToastType;
   title: string;
-  description?: string;
-  requestId?: string;
+  description?: string | undefined;
+  requestId?: string | undefined;
 }
 
 interface ToastContextValue {

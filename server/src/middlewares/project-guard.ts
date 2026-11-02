@@ -33,6 +33,7 @@ export function requireProjectRole(...allowedRoles: ProjectRole[]) {
         return next(new ForbiddenError('Insufficient project permissions', 'forbidden'));
       }
 
+      req.projectRole = membership.role;
       next();
     } catch (err) {
       next(err);

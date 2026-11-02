@@ -3,9 +3,9 @@ import { createBrowserRouter, Navigate, type RouteObject } from 'react-router';
 import { ProtectedRoute, PublicOnlyRoute } from './ProtectedRoute';
 import { AppShell } from '../components/layout';
 import { LoginScreen, RegisterScreen } from '../features/auth';
+import { ProjectDetailPage, ProjectsListPage } from '../features/projects';
 import { DevUi } from './routes/DevUi';
 import { NotFound } from './routes/NotFound';
-import { ProjectsPlaceholder } from './routes/ProjectsPlaceholder';
 
 export const routes: RouteObject[] = [
   {
@@ -28,7 +28,10 @@ export const routes: RouteObject[] = [
     children: [
       {
         element: <AppShell />,
-        children: [{ path: '/projects', element: <ProjectsPlaceholder /> }],
+        children: [
+          { path: '/projects', element: <ProjectsListPage /> },
+          { path: '/projects/:projectId', element: <ProjectDetailPage /> },
+        ],
       },
     ],
   },
