@@ -23,7 +23,7 @@ const logger = createLogger({ level: 'silent' });
 
 describe('POST /api/v1/auth/register', () => {
   it('returns 201 with Location header and user object without password_hash', async () => {
-    const mockRepo: AuthRepository = {
+    const mockRepo = {
       createUser: vi.fn().mockResolvedValue({
         id: '123e4567-e89b-12d3-a456-426614174000',
         email: 'alice@example.com',
@@ -31,7 +31,7 @@ describe('POST /api/v1/auth/register', () => {
         createdAt: '2026-11-02T12:00:00.000Z',
         updatedAt: '2026-11-02T12:00:00.000Z',
       }),
-    };
+    } as unknown as AuthRepository;
 
     const service = new AuthService(mockRepo);
     const controller = new AuthController(service);
@@ -64,13 +64,13 @@ describe('POST /api/v1/auth/register', () => {
   });
 
   it('returns 409 conflict when email is already registered', async () => {
-    const mockRepo: AuthRepository = {
+    const mockRepo = {
       createUser: vi
         .fn()
         .mockRejectedValue(
           new ConflictError('Email already registered', 'email_already_registered'),
         ),
-    };
+    } as unknown as AuthRepository;
 
     const service = new AuthService(mockRepo);
     const controller = new AuthController(service);
