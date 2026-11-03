@@ -61,7 +61,7 @@ describe('Projects End-to-End API Integration Tests', () => {
     transferOwnershipSpy = vi.fn();
     findUserByEmailSpy = vi.fn();
 
-    const mockRepo: ProjectsRepository = {
+    const mockRepo = {
       createProjectWithMember: createProjectWithMemberSpy,
       listUserProjects: listUserProjectsSpy,
       getProjectById: getProjectByIdSpy,
@@ -74,7 +74,7 @@ describe('Projects End-to-End API Integration Tests', () => {
       updateMemberRole: updateMemberRoleSpy,
       removeMember: removeMemberSpy,
       transferOwnership: transferOwnershipSpy,
-    };
+    } as unknown as ProjectsRepository;
 
     const mockAuthRepo = {
       findUserByEmailWithHash: findUserByEmailSpy,

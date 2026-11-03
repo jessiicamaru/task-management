@@ -14,6 +14,8 @@ import { authenticate } from '../../middlewares/authenticate.js';
 import { requireProjectRole } from '../../middlewares/project-guard.js';
 import { validate } from '../../middlewares/validate.js';
 import { paginationQuery } from '../../utils/schemas.js';
+import { tasksController } from '../tasks/tasks.controller.js';
+import { createTaskSchema, taskListQuerySchema } from '../tasks/tasks.schema.js';
 
 export function createProjectsRouter({
   controller = projectsController,
@@ -99,6 +101,22 @@ export function createProjectsRouter({
     validate({ params: projectIdParamSchema, body: transferOwnershipSchema }),
     requireProjectRole('owner'),
     controller.transferOwnership,
+  );
+
+  // POST /api/v1/projects/:id/tasks
+  router.post(
+    '/:id/tasks',
+    validate({ params: projectIdParamSchema, body: createTaskSchema }),
+    requireProjectRole('owner', 'admin', 'member'),
+    tasksController.create,
+  );
+
+  // GET /api/v1/projects/:id/tasks
+  router.get(
+    '/:id/tasks',
+    validate({ params: projectIdParamSchema, query: taskListQuerySchema }),
+    requireProjectRole('owner', 'admin', 'member', 'viewer'),
+    tasksController.list,
   );
 
   return router;
