@@ -2,6 +2,7 @@ import { Router } from 'express';
 
 import { globalLimiter } from '../middlewares/rate-limit.js';
 import { createAuthRouter } from '../modules/auth/auth.routes.js';
+import { createCommentsRouter } from '../modules/comments/comments.routes.js';
 import { createProjectsRouter } from '../modules/projects/projects.routes.js';
 import { createTasksRouter } from '../modules/tasks/tasks.routes.js';
 
@@ -17,6 +18,7 @@ export function createApiRouter() {
   router.use('/auth', createAuthRouter());
   router.use('/projects', createProjectsRouter());
   router.use('/tasks', createTasksRouter());
+  router.use('/comments', createCommentsRouter());
 
   return router;
 }

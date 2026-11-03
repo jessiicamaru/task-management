@@ -9,13 +9,21 @@ import {
 } from './tasks.schema.js';
 import { authenticate } from '../../middlewares/authenticate.js';
 import { validate } from '../../middlewares/validate.js';
+import { commentsController, type CommentsController } from '../comments/comments.controller.js';
+import {
+  commentListQuerySchema,
+  createCommentSchema,
+  taskCommentParamSchema,
+} from '../comments/comments.schema.js';
 
 export interface CreateTasksRouterOptions {
   controller?: TasksController | undefined;
+  commentsController?: CommentsController | undefined;
 }
 
 export function createTasksRouter({
   controller = tasksController,
+  commentsController: commentsCtrl = commentsController,
 }: CreateTasksRouterOptions = {}): Router {
   const router = Router();
 
@@ -48,6 +56,21 @@ export function createTasksRouter({
 
   // DELETE /api/v1/tasks/:id
   router.delete('/:id', validate({ params: taskIdParamSchema }), controller.delete);
+
+  // Comments scoped to task
+  // GET /api/v1/tasks/:taskId/comments
+  router.get(
+    '/:taskId/comments',
+    validate({ params: taskCommentParamSchema, query: commentListQuerySchema }),
+    commentsCtrl.listComments,
+  );
+
+  // POST /api/v1/tasks/:taskId/comments
+  router.post(
+    '/:taskId/comments',
+    validate({ params: taskCommentParamSchema, body: createCommentSchema }),
+    commentsCtrl.createComment,
+  );
 
   return router;
 }
