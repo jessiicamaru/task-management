@@ -44,7 +44,7 @@ describe('ProjectsService - Unit Tests', () => {
 
     findUserByEmailSpy = vi.fn();
 
-    const mockRepo: ProjectsRepository = {
+    const mockRepo = {
       createProjectWithMember: createProjectWithMemberSpy,
       listUserProjects: listUserProjectsSpy,
       getProjectById: getProjectByIdSpy,
@@ -57,7 +57,7 @@ describe('ProjectsService - Unit Tests', () => {
       updateMemberRole: updateMemberRoleSpy,
       removeMember: removeMemberSpy,
       transferOwnership: transferOwnershipSpy,
-    };
+    } as unknown as ProjectsRepository;
 
     const mockAuthRepo = {
       findUserByEmailWithHash: findUserByEmailSpy,
